@@ -1,0 +1,14 @@
+# Ignore backend and local dev files from Vercel deployment
+backend/
+venv/
+.venv/
+env/
+sokoyetu_db.sql
+sokoyetu_mysql.sql
+setup-backend.bat
+setup-backend.sh
+.env
+*.db
+*.sqlite
+node_modules/
+dist/
