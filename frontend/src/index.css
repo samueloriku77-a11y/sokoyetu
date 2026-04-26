@@ -6,29 +6,29 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Brand palette */
-  --navy:       #000000;
-  --navy-2:     #111111;
-  --navy-3:     #222222;
-  --navy-4:     #2b2b2b;
-  --accent:     #ffffff;
-  --accent-2:   #ffffff;
-  --green:      #22c55e;
-  --green-dk:   #16a34a;
-  --gold:       #ca8a04;
-  --blue-light: #60a5fa;
-  --purple:     #8b5cf6;
+  /* Brand palette - Light Theme */
+  --navy:       #ffffff;
+  --navy-2:     #f8fafc;
+  --navy-3:     #f1f5f9;
+  --navy-4:     #e2e8f0;
+  --accent:     #0f172a;
+  --accent-2:   #1e293b;
+  --green:      #16a34a;
+  --green-dk:   #15803d;
+  --gold:       #b45309;
+  --blue-light: #3b82f6;
+  --purple:     #7c3aed;
 
   /* Text */
-  --text-primary:   #ffffff;
-  --text-secondary: #d1d5db;
-  --text-muted:     #9ca3af;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
 
   /* Structure */
-  --border:   #222222;
-  --border-2: #2b2b2b;
-  --card-bg:  #111111;
-  --card-hover: #1a1a1a;
+  --border:   #e2e8f0;
+  --border-2: #cbd5e1;
+  --card-bg:  #ffffff;
+  --card-hover: #f1f5f9;
 
   /* Radius */
   --r-sm: 6px;
@@ -40,8 +40,8 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --glow-accent: 0 0 15px rgba(37, 99, 235, 0.1);
-  --glow-green:  0 0 15px rgba(34, 197, 94, 0.1);
+  --glow-accent: 0 0 15px rgba(15, 23, 42, 0.05);
+  --glow-green:  0 0 15px rgba(22, 163, 74, 0.1);
 
   /* Transitions */
   --t-fast: 150ms ease;
