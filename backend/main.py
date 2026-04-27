@@ -81,6 +81,7 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 # Auth Routes
 
 @app.post("/api/auth/register", response_model=schemas.UserOut, tags=["Auth"])
+
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db.query(models.User).filter(models.User.email == user.email).first():
         raise HTTPException(400, "Email already registered.")
@@ -120,6 +121,28 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     
     # Convert to UserOut schema for proper serialization
     return schemas.UserOut.model_validate(new_user)
+
+# Separate login routes per role
+@app.post("/api/auth/login/customer", response_model=schemas.Token, tags=["Auth"])
+def login_customer(req: schemas.LoginRequest, db: Session = Depends(get_db)):
+    return _login_common(req, db, allowed_roles=["CUSTOMER"])
+
+@app.post("/api/auth/login/vendor", response_model=schemas.Token, tags=["Auth"])
+def login_vendor(req: schemas.LoginRequest, db: Session = Depends(get_db)):
+    return _login_common(req, db, allowed_roles=["VENDOR", "ADMIN"])
+
+@app.post("/api/auth/login/driver", response_model=schemas.Token, tags=["Auth"])
+def login_driver(req: schemas.LoginRequest, db: Session = Depends(get_db)):
+    return _login_common(req, db, allowed_roles=["DRIVER"])
+
+def _login_common(req: schemas.LoginRequest, db: Session, allowed_roles: List[str]):
+    user = db.query(models.User).filter(models.User.email == req.email).first()
+    if not user or not verify_password(req.password, user.hashed_password):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials.")
+    if user.role not in allowed_roles:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, f"Login not allowed for role {user.role}.")
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return {"access_token": token, "token_type": "bearer", "user": schemas.UserOut.model_validate(user)}
 
 
 @app.post("/api/auth/login", response_model=schemas.Token, tags=["Auth"])
