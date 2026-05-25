@@ -21,7 +21,7 @@ export default function Register({ initialRole }) {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: '', email: '', password: '', phone: '',
-    student_id: '', university: '', course_major: '', year_of_study: '',
+    user_id: '', university: '', course_major: '', year_of_study: '',
     business_name: '', location_address: '', location_lat: null, location_lng: null
   })
 
@@ -119,8 +119,8 @@ export default function Register({ initialRole }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div className="form-group">
                     <label>University Student ID *</label>
-                    <input name="student_id" placeholder="e.g. UON/CS/2024/001" value={form.student_id} onChange={handle} required={role === 'DRIVER'} />
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>This is unique — one account per student ID</span>
+                    <input name="user_id" placeholder="e.g. UON/CS/2024/001" value={form.user_id} onChange={handle} required={role === 'DRIVER'} />
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>This is unique — one account per user ID</span>
                   </div>
                   <div className="grid-2">
                     <div className="form-group">

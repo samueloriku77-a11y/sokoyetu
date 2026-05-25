@@ -360,8 +360,8 @@ export default function DriverDashboard() {
             <div className="profile-info">
               <h3>{user?.name}</h3>
               <p className="text-muted">{user?.email}</p>
-              {user?.student_id && (
-                <p className="badge">{user.student_id} • {user.university}</p>
+              {user?.user_id && (
+                <p className="badge">{user.user_id} • {user.university}</p>
               )}
               {user?.course_major && (
                 <p className="text-muted">{user.course_major} {user.year_of_study && `• ${user.year_of_study} Year`}</p>

@@ -22,7 +22,7 @@ CREATE TABLE users (
     phone VARCHAR(20),
     
     -- Driver specific fields
-    student_id VARCHAR(50) UNIQUE,
+    user_id VARCHAR(50) UNIQUE,
     profile_photo_url VARCHAR(500),
     university VARCHAR(255),
     course_major VARCHAR(255),
@@ -36,7 +36,7 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     INDEX idx_email (email),
-    INDEX idx_student_id (student_id),
+    INDEX idx_user_id (user_id),
     INDEX idx_role (role),
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -265,7 +265,7 @@ CREATE TABLE notifications (
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Sample Users
-INSERT INTO users (email, name, hashed_password, role, phone, student_id, is_active_driver, deliveries_completed) VALUES
+INSERT INTO users (email, name, hashed_password, role, phone, user_id, is_active_driver, deliveries_completed) VALUES
 ('customer1@test.com', 'John Customer', '$2b$12$KIX0bW9H2Y2F5KqZZ9z8MuV.WEnfINJkNb8z3X9YqMF5jA7h3vIFu', 'CUSTOMER', '+254700000001', NULL, NULL, 0),
 ('vendor1@test.com', 'Sarah Vendor', '$2b$12$KIX0bW9H2Y2F5KqZZ9z8MuV.WEnfINJkNb8z3X9YqMF5jA7h3vIFu', 'VENDOR', '+254700000002', 'STU001', NULL, 0),
 ('driver1@test.com', 'Mike Driver', '$2b$12$KIX0bW9H2Y2F5KqZZ9z8MuV.WEnfINJkNb8z3X9YqMF5jA7h3vIFu', 'DRIVER', '+254700000003', 'STU002', TRUE, 15),

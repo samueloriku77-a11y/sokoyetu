@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Boolean, Column, ForeignKey, Integer, String,
-    Float, DateTime, Text, Enum
+    Float, DateTime, Text, Enum, JSON
 )
 from sqlalchemy.orm import relationship
 import datetime
@@ -72,8 +72,8 @@ class User(Base):
     hashed_password = Column(String)
     role = Column(String, default=UserRole.CUSTOMER.value)
     phone = Column(String, nullable=True)
-    # Driver specific
-    student_id = Column(String, unique=True, index=True, nullable=True)
+    # Driver / external identifier (replaces student_id)
+    user_id = Column(String, unique=True, index=True, nullable=True)
     profile_photo_url = Column(String, nullable=True)
     university = Column(String, nullable=True)
     course_major = Column(String, nullable=True)
@@ -124,10 +124,14 @@ class ProductImage(Base):
     product_id = Column(Integer, ForeignKey("products.id"))
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)  # Link to specific order
     image_url = Column(String, nullable=False)
+    thumbnail_url = Column(String, nullable=True)
     side_name = Column(String, nullable=True)  # e.g. "front", "side", "back"
     uploaded_by_id = Column(Integer, ForeignKey("users.id"))  # Vendor who uploaded
     is_verified = Column(Boolean, default=False)  # Admin verification
     admin_notes = Column(Text, nullable=True)
+    metadata = Column(JSON, nullable=True)
+    phash = Column(String, nullable=True)
+    authenticity_score = Column(Float, default=1.0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     product = relationship("Product", back_populates="images")

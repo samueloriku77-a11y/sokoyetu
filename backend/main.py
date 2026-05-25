@@ -45,6 +45,7 @@ from services.security import (
 )
 from config import UPLOAD_DIR
 import api_posts
+import api_capture
 
 engine = database.engine
 Base = database.Base
@@ -63,6 +64,8 @@ app = FastAPI(
 
 # Include posts router
 app.include_router(api_posts.router)
+# Include capture router for camera-first uploads
+app.include_router(api_capture.router)
 
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
@@ -87,10 +90,10 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(400, "Email already registered.")
 
     if user.role == "DRIVER":
-        if not user.student_id:
-            raise HTTPException(400, "Drivers must provide a Student ID.")
-        if db.query(models.User).filter(models.User.student_id == user.student_id).first():
-            raise HTTPException(400, "Student ID already linked to an account. Gaming the system is prohibited.")
+        if not user.user_id:
+            raise HTTPException(400, "Drivers must provide a User ID.")
+        if db.query(models.User).filter(models.User.user_id == user.user_id).first():
+            raise HTTPException(400, "User ID already linked to an account. Gaming the system is prohibited.")
 
     new_user = models.User(
         email=user.email,
@@ -98,7 +101,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         phone=user.phone,
         hashed_password=get_password_hash(user.password),
         role=user.role,
-        student_id=getattr(user, 'student_id', None),
+        user_id=getattr(user, 'user_id', None),
         university=getattr(user, 'university', None),
         course_major=getattr(user, 'course_major', None),
         year_of_study=getattr(user, 'year_of_study', None),
@@ -824,7 +827,7 @@ def driver_stats(
     return {
         "deliveries_completed": deliveries,
         "estimated_earnings_khs": estimated_earnings,
-        "student_id": current_user.student_id,
+        "user_id": current_user.user_id,
         "university": current_user.university,
         "course_major": current_user.course_major,
         "year_of_study": current_user.year_of_study,

@@ -11,7 +11,7 @@ class UserCreate(BaseModel):
     name: str
     phone: Optional[str] = None
     role: str = "CUSTOMER"  # CUSTOMER | VENDOR | DRIVER
-    student_id: Optional[str] = None
+    user_id: Optional[str] = None
     university: Optional[str] = None
     course_major: Optional[str] = None
     year_of_study: Optional[str] = None
@@ -30,7 +30,7 @@ class UserOut(BaseModel):
     role: str
     phone: Optional[str] = None
     wallet: Optional['WalletOut'] = None
-    student_id: Optional[str] = None
+    user_id: Optional[str] = None
     profile_photo_url: Optional[str] = None
     university: Optional[str] = None
     course_major: Optional[str] = None

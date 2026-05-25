@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
   phone VARCHAR(20),
   
   -- Driver specific
-  student_id VARCHAR(100) UNIQUE,
+  user_id VARCHAR(100) UNIQUE,
   profile_photo_url VARCHAR(255),
   university VARCHAR(255),
   course_major VARCHAR(255),
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   
   INDEX idx_email (email),
-  INDEX idx_student_id (student_id),
+  INDEX idx_user_id (user_id),
   INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert Test Users
-INSERT INTO users (email, name, hashed_password, role, phone, student_id, university, course_major, year_of_study, business_name, location_address, location_lat, location_lng, is_verified_vendor)
+INSERT INTO users (email, name, hashed_password, role, phone, user_id, university, course_major, year_of_study, business_name, location_address, location_lat, location_lng, is_verified_vendor)
 VALUES
   ('customer1@test.com', 'John Customer', '$2b$12$aAeiOtXUSThkAdViQ.T3xO8Bqkpa94o6QUDjAyhhFt7lKtk2jOie2', 'CUSTOMER', '+254700000001', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, FALSE),
   ('vendor1@test.com', 'Sarah Vendor', '$2b$12$aAeiOtXUSThkAdViQ.T3xO8Bqkpa94o6QUDjAyhhFt7lKtk2jOie2', 'VENDOR', '+254700000002', NULL, 'University of Nairobi', NULL, NULL, 'Sarah\'s Cafe', '-1.2864,36.8172', -1.2864, 36.8172, TRUE),
