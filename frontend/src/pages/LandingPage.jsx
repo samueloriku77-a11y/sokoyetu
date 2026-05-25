@@ -87,8 +87,8 @@ export default function LandingPage() {
             <Link to="/register/driver" className="glass-card fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 20, animationDelay: '0.2s', textDecoration: 'none', color: 'inherit' }}>
               <div style={{ fontSize: 'clamp(2rem, 8vw, 2.5rem)' }}>🛵</div>
               <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 800, color: '#fff' }}>For Drivers</h2>
-              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'clamp(0.9rem, 3vw, 1.1rem)' }}>
-                Earn cash delivering packages on your daily walk or ride to class. Flexible hours, instant payouts, and safe campus-only routes.
+                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'clamp(0.9rem, 3vw, 1.1rem)' }}>
+                Earn cash delivering packages on your daily walk or ride. Flexible hours, instant payouts, and safe local routes.
               </p>
               <span className="btn btn-success btn-full" style={{ marginTop: 'auto', display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>Apply to Drive</span>
             </Link>
