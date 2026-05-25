@@ -129,7 +129,7 @@ class ProductImage(Base):
     uploaded_by_id = Column(Integer, ForeignKey("users.id"))  # Vendor who uploaded
     is_verified = Column(Boolean, default=False)  # Admin verification
     admin_notes = Column(Text, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    image_metadata = Column('metadata', JSON, nullable=True)
     phash = Column(String, nullable=True)
     authenticity_score = Column(Float, default=1.0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

@@ -1,0 +1,2 @@
+# Top-level requirements file for Vercel deployments. It includes backend requirements.
+-r backend/requirements.txt
