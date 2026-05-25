@@ -131,6 +131,12 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # Convert to UserOut schema for proper serialization
     return schemas.UserOut.model_validate(new_user)
 
+
+# Backwards-compatible endpoints without the `/api` prefix for hosting platforms
+@app.post("/auth/register", response_model=schemas.UserOut, tags=["Auth"])
+def register_root(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    return register(user, db)
+
 # Separate login routes per role
 @app.post("/api/auth/login/customer", response_model=schemas.Token, tags=["Auth"])
 def login_customer(req: schemas.LoginRequest, db: Session = Depends(get_db)):
@@ -166,6 +172,16 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
         "token_type": "bearer", 
         "user": schemas.UserOut.model_validate(user)
     }
+
+
+@app.post("/auth/login", response_model=schemas.Token, tags=["Auth"])
+def login_root(req: schemas.LoginRequest, db: Session = Depends(get_db)):
+    return login(req, db)
+
+
+@app.get("/auth/me", response_model=schemas.UserOut, tags=["Auth"])
+def me_root(current_user: models.User = Depends(get_current_user)):
+    return me(current_user)
 
 
 @app.get("/api/auth/debug", tags=["Auth"])
