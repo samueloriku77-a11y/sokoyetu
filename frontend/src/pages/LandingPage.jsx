@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion'
-import heroBg from '../assets/hero-bg.png';
+// Using a CSS gradient background instead of the static hero image for cleaner, more flexible visuals
 import ChatHelper from '../components/ChatHelper'
 import FireSale from '../components/FireSale'
 
@@ -10,8 +10,8 @@ export default function LandingPage() {
   const y = useTransform(scrollY, [0, 600], [0, -120])
   return (
     <div className="hero-container">
-      {/* Background Layer */}
-      <motion.img style={{ y }} src={heroBg} className="hero-bg" alt="SokoYetu Marketplace" />
+      {/* Background Layer (now a responsive gradient instead of static image) */}
+      <motion.div style={{ y }} className="hero-bg" aria-hidden="true" />
       <div className="hero-overlay" />
 
       {/* Navbar */}
@@ -45,7 +45,7 @@ export default function LandingPage() {
               The Local Economy,<br/><span style={{ color: 'var(--accent-2)' }}>Modernized.</span>
             </h1>
             <p className="fade-up" style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', color: 'rgba(255,255,255,0.9)', maxWidth: '600px', marginBottom: 40, lineHeight: 1.4, animationDelay: '0.2s' }}>
-              Connecting students, local vendors, and independent drivers into one seamless, ultra-local marketplace.
+              Connecting users, local vendors, and independent drivers into one seamless, ultra-local marketplace.
             </p>
             <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 16, animationDelay: '0.3s', width: '100%' }}>
               <Link to="/register" className="btn btn-primary btn-lg" style={{ width: '100%' }}>Start Exploring</Link>
@@ -76,9 +76,9 @@ export default function LandingPage() {
             {/* Customer Card (clickable whole card) */}
             <Link to="/register/customer" className="glass-card fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 20, animationDelay: '0.1s', textDecoration: 'none', color: 'inherit' }}>
               <div style={{ fontSize: 'clamp(2rem, 8vw, 2.5rem)' }}>🛍️</div>
-              <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 800, color: '#fff' }}>For Students</h2>
+              <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 800, color: '#fff' }}>For Customers</h2>
               <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'clamp(0.9rem, 3vw, 1.1rem)' }}>
-                Browse local kibandas and restaurants. Get fresh meals and products delivered right to your hostel with student-friendly pricing.
+                Browse local stalls and restaurants. Get fresh meals and products delivered right to your doorstep with customer-friendly pricing.
               </p>
               <span className="btn btn-primary btn-full" style={{ marginTop: 'auto', display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>Start Shopping</span>
             </Link>
@@ -132,20 +132,20 @@ export default function LandingPage() {
         <section className="landing-section" style={{ scrollSnapAlign: 'start', background: 'rgba(255,255,255,0.08)', padding: '80px 5vw' }}>
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <h2 className="fade-up" style={{ fontSize: 'clamp(2rem, 6vw, 2.5rem)', fontWeight: 800, color: '#fff', textAlign: 'center', marginBottom: '64px' }}>
-              Loved by Thousands of Students
+              Loved by Thousands of Users
             </h2>
             <div className="grid-3" style={{ gap: '32px' }}>
               <div className="glass-card fade-up" style={{ padding: '32px', animationDelay: '0.1s' }}>
                 <div style={{ fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.1rem)', color: '#fff', marginBottom: '8px' }}>
                   "Got my chapo from mama mboga in 15 mins. Cashback when she didn't deliver on time. Perfect!"
                 </div>
-                <div style={{ fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', color: 'rgba(255,255,255,0.7)' }}>— Sarah, Year 2 Student</div>
+                <div style={{ fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', color: 'rgba(255,255,255,0.7)' }}>— Sarah, Happy Customer</div>
               </div>
               <div className="glass-card fade-up" style={{ padding: '32px', animationDelay: '0.2s' }}>
                 <div style={{ fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.1rem)', color: '#fff', marginBottom: '8px' }}>
-                  "Earned KES 800 last week delivering to fellow students. GPS protection keeps it fair."
+                  "Earned KES 800 last week delivering to local customers. GPS protection keeps it fair."
                 </div>
-                <div style={{ fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', color: 'rgba(255,255,255,0.7)' }}>— John, Computer Science</div>
+                <div style={{ fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)', color: 'rgba(255,255,255,0.7)' }}>— John, Local Driver</div>
               </div>
               <div className="glass-card fade-up" style={{ padding: '32px', animationDelay: '0.3s' }}>
                 <div style={{ fontWeight: 700, fontSize: 'clamp(1rem, 3vw, 1.1rem)', color: '#fff', marginBottom: '8px' }}>
@@ -182,7 +182,7 @@ export default function LandingPage() {
               <div className="fade-up" style={{ animationDelay: '0.4s', textAlign: 'center' }}>
                 <div style={{ fontSize: 'clamp(2rem, 8vw, 3rem)', color: 'var(--purple)', marginBottom: '16px' }}>🌍</div>
                 <h4 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.25rem)', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>Community First</h4>
-                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'clamp(0.85rem, 3vw, 0.95rem)' }}>Support local vendors & student drivers directly.</p>
+                <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'clamp(0.85rem, 3vw, 0.95rem)' }}>Support local vendors & drivers directly.</p>
               </div>
             </div>
             <div style={{ textAlign: 'center', marginTop: '64px' }}>

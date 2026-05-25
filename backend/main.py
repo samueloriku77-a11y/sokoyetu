@@ -898,7 +898,7 @@ def community_impact(
 
     impact_message = (
         f"🌍 Amazing! You've helped {vendors_supported} local vendors! "
-        f"Each purchase directly funds student drivers' education."
+        f"Each purchase supports local drivers and vendors."
     )
 
     return {

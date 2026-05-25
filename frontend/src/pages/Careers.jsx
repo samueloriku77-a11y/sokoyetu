@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 export default function Careers() {
   const steps = [
     {
-      title: "Student Account Setup",
-      description: "Create your unique student profile using your official university credentials. Our platform is exclusively for verified students.",
+      title: "Driver Account Setup",
+      description: "Create your unique driver profile using your official credentials or local ID. We verify accounts to keep the network safe.",
       number: "01"
     },
     {
@@ -20,7 +20,7 @@ export default function Careers() {
     },
     {
       title: "Begin Earning",
-      description: "Once approved, you can immediately start accepting delivery assignments that align with your daily campus routes.",
+      description: "Once approved, you can immediately start accepting delivery assignments that align with your local routes.",
       number: "04"
     }
   ];
@@ -39,7 +39,7 @@ export default function Careers() {
             Work With Us. Earn While You Walk.
           </h1>
           <p style={{ fontSize: '1.25rem', color: '#64748b', lineHeight: 1.6 }}>
-            Join the SokoYetu delivery network. We provide students with flexible opportunities to support the local economy while earning a competitive income.
+            Join the SokoYetu delivery network. We provide local drivers and community members with flexible opportunities to support the local economy while earn a competitive income.
           </p>
         </div>
 

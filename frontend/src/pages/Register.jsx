@@ -7,7 +7,7 @@ import LocationPicker from '../components/LocationPicker'
 const ROLES = [
   { id: 'CUSTOMER', label: 'Customer', desc: 'Browse and order from local vendors' },
   { id: 'VENDOR', label: 'Vendor', desc: 'Sell your products on the platform' },
-  { id: 'DRIVER', label: 'Driver', desc: 'Earn by delivering as a student' },
+  { id: 'DRIVER', label: 'Driver', desc: 'Earn by delivering in your community' },
 ]
 
 export default function Register({ initialRole }) {
@@ -115,12 +115,12 @@ export default function Register({ initialRole }) {
             {/* Driver-only fields */}
             {role === 'DRIVER' && (
               <div style={{ padding: '16px', background: 'rgba(74,222,128,.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(74,222,128,.15)' }}>
-                <p style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '.5px' }}>Student Driver Details</p>
+                <p style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '.5px' }}>Driver Details</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div className="form-group">
-                    <label>University Student ID *</label>
+                    <label>University ID (if applicable)</label>
                     <input name="user_id" placeholder="e.g. UON/CS/2024/001" value={form.user_id} onChange={handle} required={role === 'DRIVER'} />
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>This is unique — one account per user ID</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>This is unique — one account per driver ID</span>
                   </div>
                   <div className="grid-2">
                     <div className="form-group">

@@ -18,7 +18,7 @@ def _build_receipt_html(order: models.Order) -> str:
     customer = order.customer
 
     driver_name = driver.name if driver else "N/A"
-    driver_major = driver.course_major or "Student"
+    driver_major = driver.course_major or ""
     driver_year = driver.year_of_study or ""
     vendor_name = vendor.name if vendor else "N/A"
 
@@ -93,7 +93,7 @@ def _build_receipt_html(order: models.Order) -> str:
               <p style="font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px;">Delivery Fee Breakdown</p>
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="font-size:13px;color:#555;padding:4px 0;">🎓 Student Driver ({driver_name} · {driver_major} {driver_year})</td>
+                  <td style="font-size:13px;color:#555;padding:4px 0;">🚚 Driver ({driver_name} · {driver_major} {driver_year})</td>
                   <td style="text-align:right;font-size:13px;color:#2e7d32;font-weight:600;">KES {order.driver_earnings:,.2f}</td>
                 </tr>
                 <tr>
@@ -123,7 +123,7 @@ def _build_receipt_html(order: models.Order) -> str:
             <!-- Community Impact -->
             <tr><td style="padding:0 40px 32px;text-align:center;">
               <p style="color:#555;font-size:13px;margin:0;">
-                🌍 Your purchase supports <strong>local vendors</strong> and funds a <strong>student's education</strong>.<br>
+                🌍 Your purchase supports <strong>local vendors</strong> and local drivers.<br>
                 Thank you for being part of the SokoYetu community!
               </p>
             </td></tr>
