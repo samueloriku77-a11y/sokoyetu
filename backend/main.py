@@ -62,6 +62,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+# Simple health check for hosting platforms to verify the API is reachable
+@app.get("/api/health", tags=["System"])
+def health():
+    return {"status": "ok", "service": "sokoyetu", "time": datetime.datetime.utcnow().isoformat()}
+
 # Include posts router
 app.include_router(api_posts.router)
 # Include capture router for camera-first uploads
