@@ -1,10 +1,11 @@
-import uuid
-import qrcode
-import io
 import base64
-from haversine import haversine, Unit
-from sqlalchemy.orm import Session
 import datetime
+import io
+import uuid
+
+import qrcode
+from haversine import Unit, haversine
+from sqlalchemy.orm import Session
 
 try:
     from .. import models
@@ -20,8 +21,8 @@ def generate_order_ref(db: Session) -> str:
 
 
 def generate_handshake_keys(db: Session, order_id: int) -> models.HandshakeKey:
-    part_a = uuid.uuid4().hex[:8].upper()       # Vendor token
-    part_b = uuid.uuid4().hex[:16].upper()      # Customer QR payload
+    part_a = uuid.uuid4().hex[:8].upper()  # Vendor token
+    part_b = uuid.uuid4().hex[:16].upper()  # Customer QR payload
 
     key = models.HandshakeKey(
         order_id=order_id,
@@ -48,9 +49,7 @@ def generate_qr_base64(data: str) -> str:
 
 
 def verify_geofence(
-    lat1: float, lng1: float,
-    lat2: float, lng2: float,
-    max_radius_meters: float = 15.0
+    lat1: float, lng1: float, lat2: float, lng2: float, max_radius_meters: float = 15.0
 ) -> bool:
     """Return True if two GPS points are within max_radius_meters of each other."""
     dist = haversine((lat1, lng1), (lat2, lng2), unit=Unit.METERS)
@@ -79,16 +78,20 @@ def process_double_blind_handshake(
 
     # 1. Geofence check against delivery coordinates
     if order.delivery_lat and order.delivery_lng:
-        if not verify_geofence(driver_lat, driver_lng, order.delivery_lat, order.delivery_lng):
+        if not verify_geofence(
+            driver_lat, driver_lng, order.delivery_lat, order.delivery_lng
+        ):
             return {
                 "status": "Error",
-                "message": "Geofence failed. You must be within 15m of the delivery address to complete handshake."
+                "message": "Geofence failed. You must be within 15m of the delivery address to complete handshake.",
             }
 
     # 2. Key matching
-    key = db.query(models.HandshakeKey).filter(
-        models.HandshakeKey.order_id == order_id
-    ).first()
+    key = (
+        db.query(models.HandshakeKey)
+        .filter(models.HandshakeKey.order_id == order_id)
+        .first()
+    )
     if not key:
         return {"status": "Error", "message": "Handshake key not found."}
 
@@ -112,6 +115,7 @@ def process_double_blind_handshake(
 
     # Release escrow
     from .payment import release_funds
+
     release_funds(db, order_id)
 
     # Update driver stats
@@ -148,10 +152,16 @@ def register_no_show(
 
     # Verify driver is at delivery location
     if order.delivery_lat and order.delivery_lng:
-        if not verify_geofence(driver_lat, driver_lng, order.delivery_lat, order.delivery_lng, max_radius_meters=50.0):
+        if not verify_geofence(
+            driver_lat,
+            driver_lng,
+            order.delivery_lat,
+            order.delivery_lng,
+            max_radius_meters=50.0,
+        ):
             return {
                 "status": "Error",
-                "message": "You must be within 50m of the delivery address to file a no-show report."
+                "message": "You must be within 50m of the delivery address to file a no-show report.",
             }
 
     verification = models.DeliveryVerification(

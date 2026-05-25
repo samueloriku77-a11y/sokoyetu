@@ -1,27 +1,41 @@
-import uuid
 import base64
 import datetime
 import json
+import uuid
+
 import httpx
 from sqlalchemy.orm import Session
 
 try:
     from .. import models
     from ..config import (
-        MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET,
-        MPESA_SHORTCODE, MPESA_PASSKEY, MPESA_CALLBACK_URL,
-        INTASEND_API_URL, INTASEND_API_KEY, INTASEND_API_SECRET, INTASEND_CALLBACK_URL,
+        INTASEND_API_KEY,
+        INTASEND_API_SECRET,
+        INTASEND_API_URL,
+        INTASEND_CALLBACK_URL,
+        MPESA_CALLBACK_URL,
+        MPESA_CONSUMER_KEY,
+        MPESA_CONSUMER_SECRET,
+        MPESA_PASSKEY,
+        MPESA_SHORTCODE,
     )
 except ImportError:
     import models
     from config import (
-        MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET,
-        MPESA_SHORTCODE, MPESA_PASSKEY, MPESA_CALLBACK_URL,
-        INTASEND_API_URL, INTASEND_API_KEY, INTASEND_API_SECRET, INTASEND_CALLBACK_URL,
+        INTASEND_API_KEY,
+        INTASEND_API_SECRET,
+        INTASEND_API_URL,
+        INTASEND_CALLBACK_URL,
+        MPESA_CALLBACK_URL,
+        MPESA_CONSUMER_KEY,
+        MPESA_CONSUMER_SECRET,
+        MPESA_PASSKEY,
+        MPESA_SHORTCODE,
     )
 
 
 # M-Pesa Helpers
+
 
 def _get_mpesa_token() -> str:
     """Fetch OAuth token from Daraja sandbox. Returns mock token in dev."""
@@ -45,6 +59,7 @@ def _build_stk_password() -> tuple[str, str]:
     password = base64.b64encode(raw.encode()).decode()
     return password, timestamp
 
+
 def _intasend_headers() -> dict:
     return {
         "Authorization": f"Bearer {INTASEND_API_SECRET}",
@@ -52,11 +67,20 @@ def _intasend_headers() -> dict:
     }
 
 
-from .intasend import initiate_checkout as _checkout, process_intasend_callback
-def initiate_intasend_checkout(amount: float, phone_number: str, reference: str, description: str) -> dict:
+from .intasend import initiate_checkout as _checkout
+from .intasend import process_intasend_callback
+
+
+def initiate_intasend_checkout(
+    amount: float, phone_number: str, reference: str, description: str
+) -> dict:
     """Initiate a deposit payment using IntaSend mobile checkout."""
     if not INTASEND_API_SECRET or not INTASEND_API_URL:
-        return {"mode": "mock", "checkout_request_id": f"MOCK-{uuid.uuid4().hex[:10].upper()}", "amount": amount}
+        return {
+            "mode": "mock",
+            "checkout_request_id": f"MOCK-{uuid.uuid4().hex[:10].upper()}",
+            "amount": amount,
+        }
 
     payload = {
         "amount": int(amount),
@@ -81,12 +105,26 @@ def initiate_intasend_checkout(amount: float, phone_number: str, reference: str,
         return {"error": str(exc), "payload": payload}
 
 
-def initiate_intasend_payout(amount: float, phone_number: str, reference: str, description: str) -> dict:
-        return initiate_intasend_checkout(amount, phone_number, reference, description)  # IntaSend handles both
-"""Initiate a withdrawal payout using IntaSend.""" 
-def initiate_intasend_payout(amount: float, phone_number: str, reference: str, description: str) -> dict:
+def initiate_intasend_payout(
+    amount: float, phone_number: str, reference: str, description: str
+) -> dict:
+    return initiate_intasend_checkout(
+        amount, phone_number, reference, description
+    )  # IntaSend handles both
+
+
+"""Initiate a withdrawal payout using IntaSend."""
+
+
+def initiate_intasend_payout(
+    amount: float, phone_number: str, reference: str, description: str
+) -> dict:
     if not INTASEND_API_SECRET or not INTASEND_API_URL:
-        return {"mode": "mock", "payout_reference": f"MOCK-PAYOUT-{uuid.uuid4().hex[:10].upper()}", "amount": amount}
+        return {
+            "mode": "mock",
+            "payout_reference": f"MOCK-PAYOUT-{uuid.uuid4().hex[:10].upper()}",
+            "amount": amount,
+        }
 
     payload = {
         "amount": int(amount),
@@ -110,7 +148,9 @@ def initiate_intasend_payout(amount: float, phone_number: str, reference: str, d
     except Exception as exc:
         return {"error": str(exc), "payload": payload}
 
+
 # Core Payment Functions
+
 
 def initiate_stk_push(db: Session, order: models.Order, phone_number: str) -> bool:
     """
@@ -131,7 +171,6 @@ def initiate_stk_push(db: Session, order: models.Order, phone_number: str) -> bo
     db.add(ledger)
     db.commit()
     db.refresh(order)
-
 
     # httpx.post(
     #     "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",

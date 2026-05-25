@@ -1,10 +1,19 @@
-from sqlalchemy import (
-    Boolean, Column, ForeignKey, Integer, String,
-    Float, DateTime, Text, Enum, JSON
-)
-from sqlalchemy.orm import relationship
 import datetime
 import enum
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
+from sqlalchemy.orm import relationship
 
 try:
     from .database import Base
@@ -93,9 +102,13 @@ class User(Base):
 
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    products = relationship("Product", back_populates="vendor", foreign_keys="Product.vendor_id")
+    products = relationship(
+        "Product", back_populates="vendor", foreign_keys="Product.vendor_id"
+    )
     wallet = relationship("Wallet", back_populates="user", uselist=False)
-    wallet_transactions = relationship("WalletTransaction", back_populates="user", cascade="all, delete-orphan")
+    wallet_transactions = relationship(
+        "WalletTransaction", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Product(Base):
@@ -114,7 +127,9 @@ class Product(Base):
 
     vendor = relationship("User", back_populates="products", foreign_keys=[vendor_id])
     order_items = relationship("OrderItem", back_populates="product")
-    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
+    images = relationship(
+        "ProductImage", back_populates="product", cascade="all, delete-orphan"
+    )
 
 
 class ProductImage(Base):
@@ -122,14 +137,16 @@ class ProductImage(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id"))
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)  # Link to specific order
+    order_id = Column(
+        Integer, ForeignKey("orders.id"), nullable=True
+    )  # Link to specific order
     image_url = Column(String, nullable=False)
     thumbnail_url = Column(String, nullable=True)
     side_name = Column(String, nullable=True)  # e.g. "front", "side", "back"
     uploaded_by_id = Column(Integer, ForeignKey("users.id"))  # Vendor who uploaded
     is_verified = Column(Boolean, default=False)  # Admin verification
     admin_notes = Column(Text, nullable=True)
-    image_metadata = Column('metadata', JSON, nullable=True)
+    image_metadata = Column("metadata", JSON, nullable=True)
     phash = Column(String, nullable=True)
     authenticity_score = Column(Float, default=1.0)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -143,15 +160,17 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    order_ref = Column(String, unique=True, index=True)  # Human-readable e.g. SKY-2024-00001
+    order_ref = Column(
+        String, unique=True, index=True
+    )  # Human-readable e.g. SKY-2024-00001
     customer_id = Column(Integer, ForeignKey("users.id"))
     vendor_id = Column(Integer, ForeignKey("users.id"))
     driver_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     total_amount = Column(Float)
     delivery_fee = Column(Float, default=50.0)
-    driver_earnings = Column(Float, default=40.0)   # Part of delivery fee
-    platform_fee = Column(Float, default=10.0)      # Platform cut
+    driver_earnings = Column(Float, default=40.0)  # Part of delivery fee
+    platform_fee = Column(Float, default=10.0)  # Platform cut
 
     status = Column(String, default=OrderStatus.PENDING_PAYMENT)
     transaction_id = Column(String, nullable=True)
@@ -177,7 +196,9 @@ class Order(Base):
     items = relationship("OrderItem", back_populates="order")
     ledger = relationship("Ledger", back_populates="order", uselist=False)
     handshake = relationship("HandshakeKey", back_populates="order", uselist=False)
-    delivery_verifications = relationship("DeliveryVerification", back_populates="order")
+    delivery_verifications = relationship(
+        "DeliveryVerification", back_populates="order"
+    )
     product_images = relationship("ProductImage", back_populates="order")
 
 
@@ -212,8 +233,8 @@ class HandshakeKey(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), unique=True)
-    part_a_vendor = Column(String)       # Sent to vendor on order placed
-    part_b_customer = Column(String)     # Encoded in QR code for customer
+    part_a_vendor = Column(String)  # Sent to vendor on order placed
+    part_b_customer = Column(String)  # Encoded in QR code for customer
     mated = Column(Boolean, default=False)
     mated_at = Column(DateTime, nullable=True)
     mated_lat = Column(Float, nullable=True)

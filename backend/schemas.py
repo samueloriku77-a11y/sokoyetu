@@ -1,9 +1,10 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
 
+from pydantic import BaseModel, EmailStr
 
 #  USER & AUTH SCHEMAS
+
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -29,7 +30,7 @@ class UserOut(BaseModel):
     name: str
     role: str
     phone: Optional[str] = None
-    wallet: Optional['WalletOut'] = None
+    wallet: Optional["WalletOut"] = None
     user_id: Optional[str] = None
     profile_photo_url: Optional[str] = None
     university: Optional[str] = None
@@ -38,14 +39,14 @@ class UserOut(BaseModel):
     deliveries_completed: int = 0
     vendors_supported: int = 0
     is_active_driver: bool = True
-    
+
     # Vendor specific
     business_name: Optional[str] = None
     location_address: Optional[str] = None
     location_lat: Optional[float] = None
     location_lng: Optional[float] = None
     is_verified_vendor: bool = False
-    
+
     created_at: datetime
 
     class Config:
@@ -108,6 +109,7 @@ class DriverProfileUpdate(BaseModel):
 
 #  PRODUCT SCHEMAS
 
+
 class ProductCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -136,7 +138,7 @@ class ProductOut(BaseModel):
     image_url: Optional[str] = None
     stock_qty: int
     is_available: bool
-    vendor: Optional['VendorProfilePreview'] = None
+    vendor: Optional["VendorProfilePreview"] = None
     created_at: datetime
 
     class Config:
@@ -144,6 +146,7 @@ class ProductOut(BaseModel):
 
 
 #  ORDER SCHEMAS
+
 
 class OrderItemCreate(BaseModel):
     product_id: int
@@ -189,8 +192,10 @@ class OrderOut(BaseModel):
     accepted_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
     items: List[OrderItemOut] = []
-    driver_profile: Optional['DriverProfilePreview'] = None  # Safe driver info for customers
-    vendor: Optional['VendorProfilePreview'] = None # Safe vendor info for drivers
+    driver_profile: Optional["DriverProfilePreview"] = (
+        None  # Safe driver info for customers
+    )
+    vendor: Optional["VendorProfilePreview"] = None  # Safe vendor info for drivers
 
     class Config:
         from_attributes = True
@@ -205,6 +210,7 @@ class OrderStatusUpdate(BaseModel):
 
 
 #  PAYMENT & ESCROW SCHEMAS
+
 
 class STKPushRequest(BaseModel):
     order_id: int
@@ -252,6 +258,7 @@ class LedgerOut(BaseModel):
 
 
 #  SECURITY & HANDSHAKE SCHEMAS
+
 
 class GenerateQRRequest(BaseModel):
     order_id: int
@@ -318,6 +325,7 @@ class HandshakeVerify(BaseModel):
 
 #  DELIVERY VERIFICATION SCHEMAS
 
+
 class DeliveryVerificationCreate(BaseModel):
     order_id: int
     gps_lat: float
@@ -350,6 +358,7 @@ class NoShowReport(BaseModel):
 
 #  DISPUTE SCHEMAS
 
+
 class DisputeCreate(BaseModel):
     order_id: int
     reason: str
@@ -365,10 +374,12 @@ class DisputeOut(BaseModel):
 
 #  DRIVER PROFILE SCHEMAS (SAFE FOR CUSTOMER VIEW)
 
+
 class VendorProfilePreview(BaseModel):
     """Safe vendor profile shown to drivers during pickup"""
+
     id: int
-    name: str 
+    name: str
     business_name: Optional[str] = None
     location_address: Optional[str] = None
     location_lat: Optional[float] = None
@@ -381,17 +392,19 @@ class VendorProfilePreview(BaseModel):
 
 class DriverProfilePreview(BaseModel):
     """Safe driver profile shown to customers - NO sensitive data"""
+
     id: int
     name: str
     profile_photo_url: Optional[str] = None
     deliveries_completed: int = 0
     university: Optional[str] = None  # Social context only
-    
+
     class Config:
         from_attributes = True
 
 
 #  DRIVER SCHEMAS
+
 
 class DriverLocationUpdate(BaseModel):
     driver_id: int
@@ -420,6 +433,7 @@ class AcceptOrderRequest(BaseModel):
 
 #  PRODUCT IMAGE SCHEMAS (for multi-image vendor verification)
 
+
 class ProductImageOut(BaseModel):
     id: int
     product_id: int
@@ -442,6 +456,7 @@ class ProductImageCreate(BaseModel):
 
 
 #  Blog / Social Schemas
+
 
 class PostCreate(BaseModel):
     title: str
@@ -473,7 +488,7 @@ class PostOut(BaseModel):
     image_url: Optional[str] = None
     likes_count: int = 0
     comments_count: int = 0
-    author: Optional['VendorProfilePreview'] = None
+    author: Optional["VendorProfilePreview"] = None
     is_hidden: bool = False
     created_at: datetime
 
@@ -492,6 +507,7 @@ class PostsListOut(BaseModel):
 
 
 #  ADMIN SCHEMAS
+
 
 class AdminOrderApprovalRequest(BaseModel):
     approved: bool
@@ -542,4 +558,3 @@ DriverProfilePreview.model_rebuild()
 CommentOut.model_rebuild()
 
 #  Rebuild forward references for Pydantic v2
-

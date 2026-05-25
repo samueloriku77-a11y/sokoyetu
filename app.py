@@ -3,6 +3,7 @@ This imports the FastAPI `app` defined in `backend/main.py`.
 The backend package contains some top-level imports (e.g. `import database`) so
 ensure the `backend/` folder is on `sys.path` before importing.
 """
+
 import os
 import sys
 
@@ -14,7 +15,6 @@ if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 from backend.main import app  # noqa: F401
-
 
 if __name__ == "__main__":
     import uvicorn

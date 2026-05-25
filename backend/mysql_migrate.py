@@ -2,15 +2,16 @@
 
 Run with: python mysql_migrate.py
 """
+
 import sys
-from sqlalchemy import create_engine, text
-from sqlalchemy import inspect
+
+from sqlalchemy import create_engine, inspect, text
 
 try:
-    from config import DATABASE_TYPE, MYSQL_DB, DATABASE_URL
+    from config import DATABASE_TYPE, DATABASE_URL, MYSQL_DB
 except Exception:
     # If module path issues occur when running as script
-    from .config import DATABASE_TYPE, MYSQL_DB, DATABASE_URL
+    from .config import DATABASE_TYPE, DATABASE_URL, MYSQL_DB
 
 
 def ensure_mysql_columns():
@@ -21,18 +22,22 @@ def ensure_mysql_columns():
     engine = create_engine(DATABASE_URL)
     inspector = inspect(engine)
 
-    cols = {c['name'] for c in inspector.get_columns('users')} if 'users' in inspector.get_table_names() else set()
+    cols = (
+        {c["name"] for c in inspector.get_columns("users")}
+        if "users" in inspector.get_table_names()
+        else set()
+    )
 
     to_add = []
-    if 'business_name' not in cols:
+    if "business_name" not in cols:
         to_add.append("ADD COLUMN business_name VARCHAR(255) NULL")
-    if 'location_address' not in cols:
+    if "location_address" not in cols:
         to_add.append("ADD COLUMN location_address TEXT NULL")
-    if 'location_lat' not in cols:
+    if "location_lat" not in cols:
         to_add.append("ADD COLUMN location_lat DOUBLE NULL")
-    if 'location_lng' not in cols:
+    if "location_lng" not in cols:
         to_add.append("ADD COLUMN location_lng DOUBLE NULL")
-    if 'is_verified_vendor' not in cols:
+    if "is_verified_vendor" not in cols:
         to_add.append("ADD COLUMN is_verified_vendor BOOLEAN NOT NULL DEFAULT 0")
 
     if not to_add:
@@ -52,5 +57,5 @@ def ensure_mysql_columns():
         engine.dispose()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ensure_mysql_columns()

@@ -3,14 +3,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 try:
-    from ..config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
     from .. import models
+    from ..config import SMTP_HOST, SMTP_PASS, SMTP_PORT, SMTP_USER
 except ImportError:
-    from config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
     import models
+    from config import SMTP_HOST, SMTP_PASS, SMTP_PORT, SMTP_USER
 
 
 # Styled HTML Receipt Template
+
 
 def _build_receipt_html(order: models.Order) -> str:
     driver = order.driver
@@ -22,16 +23,13 @@ def _build_receipt_html(order: models.Order) -> str:
     driver_year = driver.year_of_study or ""
     vendor_name = vendor.name if vendor else "N/A"
 
-    items_html = "".join(
-        f"""
+    items_html = "".join(f"""
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">{item.product.name if item.product else 'Item'}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:center;">{item.quantity}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:right;">KES {item.unit_price * item.quantity:,.2f}</td>
         </tr>
-        """
-        for item in (order.items or [])
-    )
+        """ for item in (order.items or []))
 
     return f"""
     <!DOCTYPE html>
@@ -182,7 +180,9 @@ def send_delivery_sms(order: models.Order) -> bool:
 
     try:
         import africastalking  # optional dep — graceful skip if not installed
-        from ..config import AFRICASTALKING_USERNAME, AFRICASTALKING_API_KEY
+
+        from ..config import AFRICASTALKING_API_KEY, AFRICASTALKING_USERNAME
+
         africastalking.initialize(AFRICASTALKING_USERNAME, AFRICASTALKING_API_KEY)
         sms = africastalking.SMS
         sms.send(message, [order.customer.phone])

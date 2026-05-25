@@ -1,7 +1,8 @@
-import sqlite3
 import os
+import sqlite3
 
 DB_PATH = "sokoyetu.db"
+
 
 def sync():
     if not os.path.exists(DB_PATH):
@@ -15,11 +16,11 @@ def sync():
     new_columns = [
         ("admin_id", "INTEGER"),
         ("admin_approved_at", "DATETIME"),
-        ("admin_notes", "TEXT")
+        ("admin_notes", "TEXT"),
     ]
 
     print("Checking for missing columns in 'orders' table...")
-    
+
     # Get current columns
     cursor.execute("PRAGMA table_info(orders)")
     columns = [row[1] for row in cursor.fetchall()]
@@ -38,6 +39,7 @@ def sync():
     conn.commit()
     conn.close()
     print("Database sync complete.")
+
 
 if __name__ == "__main__":
     sync()

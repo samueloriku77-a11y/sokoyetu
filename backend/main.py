@@ -1,51 +1,52 @@
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session, joinedload
-from typing import List, Dict, Optional
-import datetime, os, shutil, uuid
+import datetime
+import os
+import shutil
+import uuid
+from typing import Dict, List, Optional
 
 import database
 import models
 import schemas
 from auth import (
-    get_password_hash, verify_password,
-    create_access_token, get_current_user, require_role,
+    create_access_token,
+    get_current_user,
+    get_password_hash,
+    require_role,
+    verify_password,
 )
-
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session, joinedload
 
 ###i should unquote this remind me.............................................
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''from services.payment import ( initiate_intasend_payment as initiate_stk_push ,   cancel_order_and_refund,
+"""from services.payment import ( initiate_intasend_payment as initiate_stk_push ,   cancel_order_and_refund,
     initiate_intasend_checkout,
     initiate_intasend_payout,
-)'''
-from services.wallet_checkout import process_wallet_checkout
-from services.security import (
-    generate_order_ref, generate_handshake_keys,
-    generate_qr_base64, process_double_blind_handshake, register_no_show, verify_geofence,
-)
-from config import UPLOAD_DIR
-import api_posts
+)"""
 import api_capture
+import api_posts
+from config import UPLOAD_DIR
+from services.security import (
+    generate_handshake_keys,
+    generate_order_ref,
+    generate_qr_base64,
+    process_double_blind_handshake,
+    register_no_show,
+    verify_geofence,
+)
+from services.wallet_checkout import process_wallet_checkout
 
 engine = database.engine
 Base = database.Base
@@ -66,7 +67,12 @@ app = FastAPI(
 # Simple health check for hosting platforms to verify the API is reachable
 @app.get("/api/health", tags=["System"])
 def health():
-    return {"status": "ok", "service": "sokoyetu", "time": datetime.datetime.utcnow().isoformat()}
+    return {
+        "status": "ok",
+        "service": "sokoyetu",
+        "time": datetime.datetime.utcnow().isoformat(),
+    }
+
 
 # Include posts router
 app.include_router(api_posts.router)
@@ -89,8 +95,8 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Auth Routes
 
-@app.post("/api/auth/register", response_model=schemas.UserOut, tags=["Auth"])
 
+@app.post("/api/auth/register", response_model=schemas.UserOut, tags=["Auth"])
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db.query(models.User).filter(models.User.email == user.email).first():
         raise HTTPException(400, "Email already registered.")
@@ -99,7 +105,10 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         if not user.user_id:
             raise HTTPException(400, "Drivers must provide a User ID.")
         if db.query(models.User).filter(models.User.user_id == user.user_id).first():
-            raise HTTPException(400, "User ID already linked to an account. Gaming the system is prohibited.")
+            raise HTTPException(
+                400,
+                "User ID already linked to an account. Gaming the system is prohibited.",
+            )
 
     new_user = models.User(
         email=user.email,
@@ -107,27 +116,27 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         phone=user.phone,
         hashed_password=get_password_hash(user.password),
         role=user.role,
-        user_id=getattr(user, 'user_id', None),
-        university=getattr(user, 'university', None),
-        course_major=getattr(user, 'course_major', None),
-        year_of_study=getattr(user, 'year_of_study', None),
-        profile_photo_url=getattr(user, 'profile_photo_url', None),
-        business_name=getattr(user, 'business_name', None),
-        location_address=getattr(user, 'location_address', None),
-        location_lat=getattr(user, 'location_lat', None),
-        location_lng=getattr(user, 'location_lng', None),
+        user_id=getattr(user, "user_id", None),
+        university=getattr(user, "university", None),
+        course_major=getattr(user, "course_major", None),
+        year_of_study=getattr(user, "year_of_study", None),
+        profile_photo_url=getattr(user, "profile_photo_url", None),
+        business_name=getattr(user, "business_name", None),
+        location_address=getattr(user, "location_address", None),
+        location_lat=getattr(user, "location_lat", None),
+        location_lng=getattr(user, "location_lng", None),
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
+
     # Create wallet for new user
     wallet = models.Wallet(user_id=new_user.id)
     db.add(wallet)
     db.commit()
     db.refresh(wallet)
     new_user.wallet = wallet
-    
+
     # Convert to UserOut schema for proper serialization
     return schemas.UserOut.model_validate(new_user)
 
@@ -137,27 +146,37 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def register_root(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return register(user, db)
 
+
 # Separate login routes per role
 @app.post("/api/auth/login/customer", response_model=schemas.Token, tags=["Auth"])
 def login_customer(req: schemas.LoginRequest, db: Session = Depends(get_db)):
     return _login_common(req, db, allowed_roles=["CUSTOMER"])
 
+
 @app.post("/api/auth/login/vendor", response_model=schemas.Token, tags=["Auth"])
 def login_vendor(req: schemas.LoginRequest, db: Session = Depends(get_db)):
     return _login_common(req, db, allowed_roles=["VENDOR", "ADMIN"])
 
+
 @app.post("/api/auth/login/driver", response_model=schemas.Token, tags=["Auth"])
 def login_driver(req: schemas.LoginRequest, db: Session = Depends(get_db)):
     return _login_common(req, db, allowed_roles=["DRIVER"])
+
 
 def _login_common(req: schemas.LoginRequest, db: Session, allowed_roles: List[str]):
     user = db.query(models.User).filter(models.User.email == req.email).first()
     if not user or not verify_password(req.password, user.hashed_password):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials.")
     if user.role not in allowed_roles:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, f"Login not allowed for role {user.role}.")
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, f"Login not allowed for role {user.role}."
+        )
     token = create_access_token({"sub": str(user.id), "role": user.role})
-    return {"access_token": token, "token_type": "bearer", "user": schemas.UserOut.model_validate(user)}
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": schemas.UserOut.model_validate(user),
+    }
 
 
 @app.post("/api/auth/login", response_model=schemas.Token, tags=["Auth"])
@@ -168,9 +187,9 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
     token = create_access_token({"sub": str(user.id), "role": user.role})
     # Convert user to UserOut schema to ensure proper serialization
     return {
-        "access_token": token, 
-        "token_type": "bearer", 
-        "user": schemas.UserOut.model_validate(user)
+        "access_token": token,
+        "token_type": "bearer",
+        "user": schemas.UserOut.model_validate(user),
     }
 
 
@@ -187,9 +206,10 @@ def me_root(current_user: models.User = Depends(get_current_user)):
 @app.get("/api/auth/debug", tags=["Auth"])
 def debug_me(current_user: models.User = Depends(get_current_user)):
     return {
-        "id": current_user.id,        "email": current_user.email,
+        "id": current_user.id,
+        "email": current_user.email,
         "role": current_user.role,
-        "role_type": str(type(current_user.role))
+        "role_type": str(type(current_user.role)),
     }
 
 
@@ -203,13 +223,19 @@ def get_wallet(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    wallet = db.query(models.Wallet).filter(models.Wallet.user_id == current_user.id).first()
+    wallet = (
+        db.query(models.Wallet).filter(models.Wallet.user_id == current_user.id).first()
+    )
     if not wallet:
         raise HTTPException(404, "Wallet not found. Please contact support.")
-    
-    transactions = db.query(models.WalletTransaction).filter(
-        models.WalletTransaction.user_id == current_user.id
-    ).order_by(models.WalletTransaction.created_at.desc()).limit(20).all()
+
+    transactions = (
+        db.query(models.WalletTransaction)
+        .filter(models.WalletTransaction.user_id == current_user.id)
+        .order_by(models.WalletTransaction.created_at.desc())
+        .limit(20)
+        .all()
+    )
 
     return {
         "wallet_balance": wallet.balance,
@@ -217,7 +243,9 @@ def get_wallet(
     }
 
 
-@app.post("/api/wallet/deposit", response_model=schemas.WalletTransactionOut, tags=["Wallet"])
+@app.post(
+    "/api/wallet/deposit", response_model=schemas.WalletTransactionOut, tags=["Wallet"]
+)
 def deposit_to_wallet(
     request: schemas.WalletTransactionCreate,
     current_user: models.User = Depends(get_current_user),
@@ -243,10 +271,12 @@ def deposit_to_wallet(
     db.commit()
     db.refresh(tx)
 
-    wallet = db.query(models.Wallet).filter(models.Wallet.user_id == current_user.id).first()
+    wallet = (
+        db.query(models.Wallet).filter(models.Wallet.user_id == current_user.id).first()
+    )
     if not wallet:
         raise HTTPException(404, "Wallet not found.")
-    
+
     result = initiate_intasend_checkout(
         request.amount,
         request.phone_number,
@@ -266,7 +296,9 @@ def deposit_to_wallet(
     return tx
 
 
-@app.post("/api/wallet/withdraw", response_model=schemas.WalletTransactionOut, tags=["Wallet"])
+@app.post(
+    "/api/wallet/withdraw", response_model=schemas.WalletTransactionOut, tags=["Wallet"]
+)
 def withdraw_from_wallet(
     request: schemas.WalletTransactionCreate,
     current_user: models.User = Depends(get_current_user),
@@ -278,8 +310,10 @@ def withdraw_from_wallet(
         raise HTTPException(400, "Minimum withdrawal amount is 100 KES.")
     if request.amount <= 0:
         raise HTTPException(400, "Withdrawal amount must be greater than zero.")
-    
-    wallet = db.query(models.Wallet).filter(models.Wallet.user_id == current_user.id).first()
+
+    wallet = (
+        db.query(models.Wallet).filter(models.Wallet.user_id == current_user.id).first()
+    )
     if not wallet:
         raise HTTPException(404, "Wallet not found.")
     if request.amount > wallet.balance:
@@ -340,21 +374,33 @@ async def upload_driver_photo(
 
 # Products
 
+
 @app.get("/api/products", response_model=List[schemas.ProductOut], tags=["Products"])
 def list_products(
     category: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
-    q = db.query(models.Product).options(joinedload(models.Product.vendor)).filter(models.Product.is_available == True)
+    q = (
+        db.query(models.Product)
+        .options(joinedload(models.Product.vendor))
+        .filter(models.Product.is_available == True)
+    )
     if category:
         q = q.filter(models.Product.category == category)
     prods = q.all()
     return [schemas.ProductOut.model_validate(p) for p in prods]
 
 
-@app.get("/api/products/{product_id}", response_model=schemas.ProductOut, tags=["Products"])
+@app.get(
+    "/api/products/{product_id}", response_model=schemas.ProductOut, tags=["Products"]
+)
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    p = db.query(models.Product).options(joinedload(models.Product.vendor)).filter(models.Product.id == product_id).first()
+    p = (
+        db.query(models.Product)
+        .options(joinedload(models.Product.vendor))
+        .filter(models.Product.id == product_id)
+        .first()
+    )
     if not p:
         raise HTTPException(404, "Product not found.")
     return schemas.ProductOut.model_validate(p)
@@ -367,7 +413,7 @@ def create_product(
     db: Session = Depends(get_db),
 ):
     v_id = current_user.id
-    # Note: ProductCreate currently doesn't have vendor_id. 
+    # Note: ProductCreate currently doesn't have vendor_id.
     # For admins, we might need to add it, but for now we'll default to 1 (Demo Vendor) or require it.
     # To keep it simple for now and fix the 403:
     new_product = models.Product(vendor_id=v_id, **product.model_dump())
@@ -378,7 +424,11 @@ def create_product(
     return schemas.ProductOut.model_validate(new_product)
 
 
-@app.put("/api/vendor/products/{product_id}", response_model=schemas.ProductOut, tags=["Vendor"])
+@app.put(
+    "/api/vendor/products/{product_id}",
+    response_model=schemas.ProductOut,
+    tags=["Vendor"],
+)
 def update_product(
     product_id: int,
     update: schemas.ProductUpdate,
@@ -388,7 +438,7 @@ def update_product(
     p = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not p:
         raise HTTPException(404, "Product not found.")
-    
+
     # Access control: VENDOR can only edit their own products
     if current_user.role == "VENDOR" and p.vendor_id != current_user.id:
         raise HTTPException(403, "You can only edit your own products.")
@@ -409,7 +459,7 @@ def delete_product(
     p = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not p:
         raise HTTPException(404, "Product not found.")
-    
+
     # Access control: VENDOR can only delete their own products
     if current_user.role == "VENDOR" and p.vendor_id != current_user.id:
         raise HTTPException(403, "You can only delete your own products.")
@@ -420,6 +470,7 @@ def delete_product(
 
 
 # Orders
+
 
 @app.post("/api/orders/wallet-pay", response_model=schemas.OrderOut, tags=["Orders"])
 def create_wallet_order(
@@ -440,13 +491,19 @@ def create_order(
     total = 0.0
     items_to_create = []
     for item in order_data.items:
-        product = db.query(models.Product).filter(
-            models.Product.id == item.product_id,
-            models.Product.vendor_id == order_data.vendor_id,
-            models.Product.is_available == True,
-        ).first()
+        product = (
+            db.query(models.Product)
+            .filter(
+                models.Product.id == item.product_id,
+                models.Product.vendor_id == order_data.vendor_id,
+                models.Product.is_available == True,
+            )
+            .first()
+        )
         if not product:
-            raise HTTPException(400, f"Product {item.product_id} not found or unavailable.")
+            raise HTTPException(
+                400, f"Product {item.product_id} not found or unavailable."
+            )
         total += product.price * item.quantity
         items_to_create.append((product, item.quantity))
 
@@ -469,12 +526,14 @@ def create_order(
 
     # Add line items
     for product, qty in items_to_create:
-        db.add(models.OrderItem(
-            order_id=new_order.id,
-            product_id=product.id,
-            quantity=qty,
-            unit_price=product.price,
-        ))
+        db.add(
+            models.OrderItem(
+                order_id=new_order.id,
+                product_id=product.id,
+                quantity=qty,
+                unit_price=product.price,
+            )
+        )
     db.commit()
 
     # Initiate STK Push → escrow
@@ -493,11 +552,23 @@ def list_orders(
     db: Session = Depends(get_db),
 ):
     if current_user.role == "CUSTOMER":
-        return db.query(models.Order).filter(models.Order.customer_id == current_user.id).all()
+        return (
+            db.query(models.Order)
+            .filter(models.Order.customer_id == current_user.id)
+            .all()
+        )
     elif current_user.role == "VENDOR":
-        return db.query(models.Order).filter(models.Order.vendor_id == current_user.id).all()
+        return (
+            db.query(models.Order)
+            .filter(models.Order.vendor_id == current_user.id)
+            .all()
+        )
     elif current_user.role == "DRIVER":
-        return db.query(models.Order).filter(models.Order.driver_id == current_user.id).all()
+        return (
+            db.query(models.Order)
+            .filter(models.Order.driver_id == current_user.id)
+            .all()
+        )
     return []
 
 
@@ -512,9 +583,9 @@ def get_order(
         raise HTTPException(404, "Order not found.")
     # ── Access control: only the involved parties can read an order ──
     is_owner = (
-        (current_user.role == "CUSTOMER" and order.customer_id == current_user.id) or
-        (current_user.role == "VENDOR"   and order.vendor_id   == current_user.id) or
-        (current_user.role == "DRIVER"   and order.driver_id   == current_user.id)
+        (current_user.role == "CUSTOMER" and order.customer_id == current_user.id)
+        or (current_user.role == "VENDOR" and order.vendor_id == current_user.id)
+        or (current_user.role == "DRIVER" and order.driver_id == current_user.id)
     )
     if not is_owner:
         raise HTTPException(403, "You do not have access to this order.")
@@ -528,20 +599,29 @@ def get_order_qr(
     db: Session = Depends(get_db),
 ):
     """Returns the customer's QR code (Part B of handshake) ONLY when driver has arrived (OUT_FOR_DELIVERY)."""
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.customer_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.customer_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found.")
 
     # QR is ONLY available when driver is actively delivering at location
     if order.status != models.OrderStatus.OUT_FOR_DELIVERY:
-        raise HTTPException(400, f"QR not available yet. Current status: {order.status}. Driver must be at your location.")
+        raise HTTPException(
+            400,
+            f"QR not available yet. Current status: {order.status}. Driver must be at your location.",
+        )
 
-    key = db.query(models.HandshakeKey).filter(
-        models.HandshakeKey.order_id == order_id
-    ).first()
+    key = (
+        db.query(models.HandshakeKey)
+        .filter(models.HandshakeKey.order_id == order_id)
+        .first()
+    )
     if not key or key.mated:
         raise HTTPException(404, "Handshake key not found or already used.")
 
@@ -562,23 +642,36 @@ def driver_arrived(
     db: Session = Depends(get_db),
 ):
     """Mark that driver has arrived at delivery location. Customer can now scan QR."""
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.driver_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.driver_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found or not assigned to you.")
 
     if order.status != models.OrderStatus.ACCEPTED_BY_VENDOR:
-        raise HTTPException(400, f"Order must be in ACCEPTED status. Current: {order.status}")
+        raise HTTPException(
+            400, f"Order must be in ACCEPTED status. Current: {order.status}"
+        )
 
     # Verify driver is at delivery location (within 100m)
     from .services.security import verify_geofence
+
     if order.delivery_lat and order.delivery_lng:
-        if not verify_geofence(driver_lat, driver_lng, order.delivery_lat, order.delivery_lng, max_radius_meters=100.0):
+        if not verify_geofence(
+            driver_lat,
+            driver_lng,
+            order.delivery_lat,
+            order.delivery_lng,
+            max_radius_meters=100.0,
+        ):
             return {
                 "status": "Error",
-                "message": "You must be within 100m of the delivery location."
+                "message": "You must be within 100m of the delivery location.",
             }
 
     order.status = models.OrderStatus.OUT_FOR_DELIVERY
@@ -603,6 +696,7 @@ def cancel_order(
 
 # Vendor Actions
 
+
 @app.post("/api/vendor/orders/{order_id}/accept", tags=["Vendor"])
 def vendor_accept_order(
     order_id: int,
@@ -610,10 +704,14 @@ def vendor_accept_order(
     db: Session = Depends(get_db),
 ):
     """Vendor accepts order → moves to ACCEPTED_BY_VENDOR. Refund window closes."""
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.vendor_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.vendor_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found.")
     if order.status != models.OrderStatus.PENDING_VENDOR_APPROVAL:
@@ -624,9 +722,11 @@ def vendor_accept_order(
     db.commit()
 
     # Return Part A key to vendor
-    key = db.query(models.HandshakeKey).filter(
-        models.HandshakeKey.order_id == order_id
-    ).first()
+    key = (
+        db.query(models.HandshakeKey)
+        .filter(models.HandshakeKey.order_id == order_id)
+        .first()
+    )
 
     return {
         "status": "Success",
@@ -643,10 +743,14 @@ def vendor_mark_ready(
     db: Session = Depends(get_db),
 ):
     """Vendor marks order as ready → visible to nearby drivers."""
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.vendor_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.vendor_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found.")
     if order.status != models.OrderStatus.ACCEPTED_BY_VENDOR:
@@ -661,25 +765,36 @@ def vendor_orders(
     current_user: models.User = Depends(require_role("VENDOR")),
     db: Session = Depends(get_db),
 ):
-    return db.query(models.Order).filter(
-        models.Order.vendor_id == current_user.id
-    ).order_by(models.Order.created_at.desc()).all()
+    return (
+        db.query(models.Order)
+        .filter(models.Order.vendor_id == current_user.id)
+        .order_by(models.Order.created_at.desc())
+        .all()
+    )
 
 
-@app.get("/api/vendor/products", response_model=List[schemas.ProductOut], tags=["Vendor"])
+@app.get(
+    "/api/vendor/products", response_model=List[schemas.ProductOut], tags=["Vendor"]
+)
 def vendor_products(
     current_user: models.User = Depends(require_role("VENDOR", "ADMIN")),
     db: Session = Depends(get_db),
 ):
-    prods = db.query(models.Product).options(joinedload(models.Product.vendor)).filter(
-        models.Product.vendor_id == current_user.id
-    ).all()
+    prods = (
+        db.query(models.Product)
+        .options(joinedload(models.Product.vendor))
+        .filter(models.Product.vendor_id == current_user.id)
+        .all()
+    )
     return [schemas.ProductOut.model_validate(p) for p in prods]
 
 
 # Driver Routes
 
-@app.get("/api/driver/nearby-jobs", response_model=List[schemas.OrderOut], tags=["Driver"])
+
+@app.get(
+    "/api/driver/nearby-jobs", response_model=List[schemas.OrderOut], tags=["Driver"]
+)
 def nearby_jobs(
     lat: Optional[float] = None,
     lng: Optional[float] = None,
@@ -687,10 +802,14 @@ def nearby_jobs(
     db: Session = Depends(get_db),
 ):
     """Returns unassigned orders ready for pickup."""
-    orders = db.query(models.Order).filter(
-        models.Order.status == models.OrderStatus.OUT_FOR_DELIVERY,
-        models.Order.driver_id == None,
-    ).all()
+    orders = (
+        db.query(models.Order)
+        .filter(
+            models.Order.status == models.OrderStatus.OUT_FOR_DELIVERY,
+            models.Order.driver_id == None,
+        )
+        .all()
+    )
     return orders
 
 
@@ -700,15 +819,23 @@ def driver_accept_job(
     current_user: models.User = Depends(require_role("DRIVER")),
     db: Session = Depends(get_db),
 ):
-    from haversine import haversine, Unit
+    from haversine import Unit, haversine
+
     # ── Race-condition protection: use with_for_update() to lock the row ──
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.status == models.OrderStatus.OUT_FOR_DELIVERY,
-        models.Order.driver_id == None,
-    ).with_for_update(skip_locked=True).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.status == models.OrderStatus.OUT_FOR_DELIVERY,
+            models.Order.driver_id == None,
+        )
+        .with_for_update(skip_locked=True)
+        .first()
+    )
     if not order:
-        raise HTTPException(409, "Job no longer available — another driver may have claimed it.")
+        raise HTTPException(
+            409, "Job no longer available — another driver may have claimed it."
+        )
 
     # Prevent a driver from accepting their own vendor's orders (conflict-of-interest)
     if order.vendor_id == current_user.id:
@@ -719,28 +846,46 @@ def driver_accept_job(
 
     # ── Smart Batching: Auto-assign nearby orders on the same path ──
     nearby_radius_km = 2.0
-    batched_orders = db.query(models.Order).filter(
-        models.Order.id != order.id,
-        models.Order.status == models.OrderStatus.OUT_FOR_DELIVERY,
-        models.Order.driver_id == None,
-        models.Order.vendor_id != current_user.id
-    ).with_for_update(skip_locked=True).all()
+    batched_orders = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id != order.id,
+            models.Order.status == models.OrderStatus.OUT_FOR_DELIVERY,
+            models.Order.driver_id == None,
+            models.Order.vendor_id != current_user.id,
+        )
+        .with_for_update(skip_locked=True)
+        .all()
+    )
 
     batched_count = 0
     for b_order in batched_orders:
-        if b_order.delivery_lat and b_order.delivery_lng and order.delivery_lat and order.delivery_lng:
+        if (
+            b_order.delivery_lat
+            and b_order.delivery_lng
+            and order.delivery_lat
+            and order.delivery_lng
+        ):
             try:
-                dist = haversine((order.delivery_lat, order.delivery_lng), (b_order.delivery_lat, b_order.delivery_lng), unit=Unit.KILOMETERS)
+                dist = haversine(
+                    (order.delivery_lat, order.delivery_lng),
+                    (b_order.delivery_lat, b_order.delivery_lng),
+                    unit=Unit.KILOMETERS,
+                )
                 if dist <= nearby_radius_km:
                     b_order.driver_id = current_user.id
                     batched_count += 1
             except:
                 pass
-                
+
     if batched_count > 0:
         db.commit()
 
-    msg = "Job accepted." + (f" Auto-batched {batched_count} nearby orders on your route!" if batched_count > 0 else " Navigate to vendor for pickup.")
+    msg = "Job accepted." + (
+        f" Auto-batched {batched_count} nearby orders on your route!"
+        if batched_count > 0
+        else " Navigate to vendor for pickup."
+    )
     return {"status": "Success", "message": msg, "order_ref": order.order_ref}
 
 
@@ -770,12 +915,14 @@ def driver_handshake(
         # Refresh order and send delivery notifications
         db.refresh(order)
         from .services.notifications import send_delivery_email, send_delivery_sms
+
         send_delivery_email(order)
         send_delivery_sms(order)
     return result
 
 
 ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+
 
 @app.post("/api/driver/orders/{order_id}/no-show", tags=["Driver"])
 async def driver_no_show(
@@ -798,7 +945,9 @@ async def driver_no_show(
     # ── Validate file type (no executable uploads) ──
     ext = (file.filename or "").rsplit(".", 1)[-1].lower()
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
-        raise HTTPException(400, f"Invalid file type. Allowed: {ALLOWED_IMAGE_EXTENSIONS}")
+        raise HTTPException(
+            400, f"Invalid file type. Allowed: {ALLOWED_IMAGE_EXTENSIONS}"
+        )
 
     filename = f"noshow_{order_id}_{uuid.uuid4().hex[:8]}.{ext}"
     path = os.path.join(UPLOAD_DIR, filename)
@@ -816,9 +965,11 @@ def update_driver_location(
     db: Session = Depends(get_db),
 ):
     """Update driver's real-time GPS location."""
-    existing = db.query(models.DriverLocation).filter(
-        models.DriverLocation.driver_id == current_user.id
-    ).first()
+    existing = (
+        db.query(models.DriverLocation)
+        .filter(models.DriverLocation.driver_id == current_user.id)
+        .first()
+    )
 
     if existing:
         existing.lat = location.lat
@@ -845,7 +996,7 @@ def driver_stats(
     deliveries = current_user.deliveries_completed or 0
     # Calculate estimated earnings (example: 40 KES per delivery)
     estimated_earnings = deliveries * 40
-    
+
     return {
         "deliveries_completed": deliveries,
         "estimated_earnings_khs": estimated_earnings,
@@ -858,6 +1009,7 @@ def driver_stats(
 
 
 # Disputes & Escalations
+
 
 @app.post("/api/disputes", response_model=schemas.DisputeOut, tags=["Disputes"])
 def create_dispute(
@@ -872,9 +1024,9 @@ def create_dispute(
 
     # Only customer, vendor, or driver can dispute
     if not (
-        (current_user.role == "CUSTOMER" and order.customer_id == current_user.id) or
-        (current_user.role == "VENDOR" and order.vendor_id == current_user.id) or
-        (current_user.role == "DRIVER" and order.driver_id == current_user.id)
+        (current_user.role == "CUSTOMER" and order.customer_id == current_user.id)
+        or (current_user.role == "VENDOR" and order.vendor_id == current_user.id)
+        or (current_user.role == "DRIVER" and order.driver_id == current_user.id)
     ):
         raise HTTPException(403, "Unauthorized to dispute this order.")
 
@@ -890,7 +1042,9 @@ def create_dispute(
     return new_dispute
 
 
-@app.get("/api/disputes/{dispute_id}", response_model=schemas.DisputeOut, tags=["Disputes"])
+@app.get(
+    "/api/disputes/{dispute_id}", response_model=schemas.DisputeOut, tags=["Disputes"]
+)
 def get_dispute(
     dispute_id: int,
     current_user: models.User = Depends(get_current_user),
@@ -904,16 +1058,21 @@ def get_dispute(
 
 # Community Impact (Customer Dashboard)
 
+
 @app.get("/api/customer/community-impact", tags=["Customer"])
 def community_impact(
     current_user: models.User = Depends(require_role("CUSTOMER")),
     db: Session = Depends(get_db),
 ):
     """Show customer their community support metrics."""
-    orders = db.query(models.Order).filter(
-        models.Order.customer_id == current_user.id,
-        models.Order.status == models.OrderStatus.DELIVERED,
-    ).all()
+    orders = (
+        db.query(models.Order)
+        .filter(
+            models.Order.customer_id == current_user.id,
+            models.Order.status == models.OrderStatus.DELIVERED,
+        )
+        .all()
+    )
 
     vendors_supported = len(set(o.vendor_id for o in orders))
     total_spent = sum(o.total_amount for o in orders)
@@ -933,6 +1092,7 @@ def community_impact(
 
 # Customer Wallet / Payment History
 
+
 @app.get("/api/customer/orders/{order_id}/receipt", tags=["Customer"])
 def get_receipt(
     order_id: int,
@@ -940,10 +1100,14 @@ def get_receipt(
     db: Session = Depends(get_db),
 ):
     """Return order receipt (detailed breakdown)."""
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.customer_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.customer_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found.")
 
@@ -969,16 +1133,20 @@ def get_order_driver_profile(
     db: Session = Depends(get_db),
 ):
     """Get safe driver profile for customer (no sensitive data)."""
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.customer_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.customer_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found.")
-    
+
     if not order.driver:
         return {"driver_profile": None, "message": "Driver not yet assigned"}
-    
+
     # Return only safe, public-facing driver info
     return {
         "driver_profile": {
@@ -994,20 +1162,27 @@ def get_order_driver_profile(
 
 # Vendor Dashboard
 
+
 @app.get("/api/vendor/dashboard", tags=["Vendor"])
 def vendor_dashboard(
     current_user: models.User = Depends(require_role("VENDOR")),
     db: Session = Depends(get_db),
 ):
     """Vendor analytics dashboard."""
-    orders = db.query(models.Order).filter(
-        models.Order.vendor_id == current_user.id
-    ).all()
+    orders = (
+        db.query(models.Order).filter(models.Order.vendor_id == current_user.id).all()
+    )
 
     delivered = sum(1 for o in orders if o.status == models.OrderStatus.DELIVERED)
-    pending = sum(1 for o in orders if o.status == models.OrderStatus.PENDING_VENDOR_APPROVAL)
-    in_progress = sum(1 for o in orders if o.status == models.OrderStatus.OUT_FOR_DELIVERY)
-    revenue = sum(o.total_amount for o in orders if o.status == models.OrderStatus.DELIVERED)
+    pending = sum(
+        1 for o in orders if o.status == models.OrderStatus.PENDING_VENDOR_APPROVAL
+    )
+    in_progress = sum(
+        1 for o in orders if o.status == models.OrderStatus.OUT_FOR_DELIVERY
+    )
+    revenue = sum(
+        o.total_amount for o in orders if o.status == models.OrderStatus.DELIVERED
+    )
 
     return {
         "total_orders": len(orders),
@@ -1021,20 +1196,25 @@ def vendor_dashboard(
 
 # Geofencing & Security
 
-@app.post("/api/security/geofence-check", response_model=schemas.GeofenceCheckResponse, tags=["Security"])
+
+@app.post(
+    "/api/security/geofence-check",
+    response_model=schemas.GeofenceCheckResponse,
+    tags=["Security"],
+)
 def check_geofence(
     req: schemas.GeofenceCheckRequest,
     db: Session = Depends(get_db),
 ):
     """Check if driver is within geofence of customer delivery location."""
-    from haversine import haversine, Unit
-    
+    from haversine import Unit, haversine
+
     distance = haversine(
         (req.driver_lat, req.driver_lng),
         (req.customer_lat, req.customer_lng),
-        unit=Unit.METERS
+        unit=Unit.METERS,
     )
-    
+
     return {
         "within_radius": distance <= 15,
         "distance_meters": distance,
@@ -1042,23 +1222,33 @@ def check_geofence(
     }
 
 
-@app.post("/api/security/qr-generate", response_model=schemas.QRCodeResponse, tags=["Security"])
+@app.post(
+    "/api/security/qr-generate",
+    response_model=schemas.QRCodeResponse,
+    tags=["Security"],
+)
 def generate_qr(
     req: schemas.GenerateQRRequest,
     current_user: models.User = Depends(require_role("CUSTOMER")),
     db: Session = Depends(get_db),
 ):
     """Generate or retrieve customer's QR code for order delivery."""
-    order = db.query(models.Order).filter(
-        models.Order.id == req.order_id,
-        models.Order.customer_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == req.order_id,
+            models.Order.customer_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found.")
 
-    key = db.query(models.HandshakeKey).filter(
-        models.HandshakeKey.order_id == req.order_id
-    ).first()
+    key = (
+        db.query(models.HandshakeKey)
+        .filter(models.HandshakeKey.order_id == req.order_id)
+        .first()
+    )
     if not key:
         raise HTTPException(404, "Handshake not initialized.")
 
@@ -1072,7 +1262,11 @@ def generate_qr(
     }
 
 
-@app.post("/api/security/handshake/mate", response_model=schemas.MateHandshakeResponse, tags=["Security"])
+@app.post(
+    "/api/security/handshake/mate",
+    response_model=schemas.MateHandshakeResponse,
+    tags=["Security"],
+)
 def mate_handshake(
     req: schemas.MateHandshakeRequest,
     current_user: models.User = Depends(require_role("DRIVER")),
@@ -1086,12 +1280,13 @@ def mate_handshake(
         req.driver_lat,
         req.driver_lng,
     )
-    
-    from haversine import haversine, Unit
+
+    from haversine import Unit, haversine
+
     distance = haversine(
         (req.driver_lat, req.driver_lng),
         (req.customer_lat, req.customer_lng),
-        unit=Unit.METERS
+        unit=Unit.METERS,
     )
 
     success = result.get("status") == "Success"
@@ -1100,6 +1295,7 @@ def mate_handshake(
         order = db.query(models.Order).filter(models.Order.id == req.order_id).first()
         if order:
             from .services.notifications import send_delivery_email, send_delivery_sms
+
             send_delivery_email(order)
             send_delivery_sms(order)
 
@@ -1112,6 +1308,7 @@ def mate_handshake(
 
 
 # Real-time Driver Tracking (WebSocket)
+
 
 class DriverConnectionManager:
     def __init__(self):
@@ -1128,11 +1325,13 @@ class DriverConnectionManager:
         for conn_id, connection in self.active_connections.items():
             if conn_id != driver_id:
                 try:
-                    await connection.send_json({
-                        "type": "driver_location",
-                        "driver_id": driver_id,
-                        **location,
-                    })
+                    await connection.send_json(
+                        {
+                            "type": "driver_location",
+                            "driver_id": driver_id,
+                            **location,
+                        }
+                    )
                 except:
                     pass
 
@@ -1163,6 +1362,7 @@ async def websocket_driver_tracking(
 
 # Health Check
 
+
 @app.get("/api/health", tags=["System"])
 def health_check():
     """Service health check."""
@@ -1179,6 +1379,7 @@ def health_check():
 
 
 # WebSocket — Real-time Driver GPS
+
 
 class WSManager:
     def __init__(self):
@@ -1198,20 +1399,25 @@ class WSManager:
             except Exception:
                 pass
 
+
 ws_manager = WSManager()
 
 
 @app.websocket("/ws/driver/{driver_id}")
-async def driver_ws(websocket: WebSocket, driver_id: int, db: Session = Depends(get_db)):
+async def driver_ws(
+    websocket: WebSocket, driver_id: int, db: Session = Depends(get_db)
+):
     await ws_manager.connect(websocket, driver_id)
     try:
         while True:
             data = await websocket.receive_json()
             lat, lng = data.get("lat"), data.get("lng")
             if lat and lng:
-                existing = db.query(models.DriverLocation).filter(
-                    models.DriverLocation.driver_id == driver_id
-                ).first()
+                existing = (
+                    db.query(models.DriverLocation)
+                    .filter(models.DriverLocation.driver_id == driver_id)
+                    .first()
+                )
                 if existing:
                     existing.lat = lat
                     existing.lng = lng
@@ -1219,12 +1425,15 @@ async def driver_ws(websocket: WebSocket, driver_id: int, db: Session = Depends(
                 else:
                     db.add(models.DriverLocation(driver_id=driver_id, lat=lat, lng=lng))
                 db.commit()
-                await ws_manager.broadcast({"driver_id": driver_id, "lat": lat, "lng": lng})
+                await ws_manager.broadcast(
+                    {"driver_id": driver_id, "lat": lat, "lng": lng}
+                )
     except WebSocketDisconnect:
         ws_manager.disconnect(driver_id)
 
 
 # Admin Panel
+
 
 @app.post("/api/admin/orders/{order_id}/approve", tags=["Admin"])
 def admin_approve_order(
@@ -1243,9 +1452,13 @@ def admin_approve_order(
         order.admin_id = current_user.id
         order.admin_approved_at = datetime.datetime.utcnow()
         order.admin_notes = approval.notes or ""
-        
+
         # Mark images as verified if they exist
-        images = db.query(models.ProductImage).filter(models.ProductImage.order_id == order_id).all()
+        images = (
+            db.query(models.ProductImage)
+            .filter(models.ProductImage.order_id == order_id)
+            .all()
+        )
         for image in images:
             image.is_verified = True
             image.admin_notes = approval.notes
@@ -1253,33 +1466,51 @@ def admin_approve_order(
         # Reject: order goes back to vendor for corrections
         order.status = models.OrderStatus.PENDING_VENDOR_APPROVAL
         order.admin_id = current_user.id
-        order.admin_notes = approval.notes or "Rejected - please resubmit with better images"
+        order.admin_notes = (
+            approval.notes or "Rejected - please resubmit with better images"
+        )
 
     db.commit()
-    return {"status": "Success", "message": f"Order {'approved' if approval.approved else 'rejected'}", "order_id": order_id}
+    return {
+        "status": "Success",
+        "message": f"Order {'approved' if approval.approved else 'rejected'}",
+        "order_id": order_id,
+    }
 
 
-@app.get("/api/admin/orders/pending", response_model=List[schemas.AdminOrderOut], tags=["Admin"])
+@app.get(
+    "/api/admin/orders/pending",
+    response_model=List[schemas.AdminOrderOut],
+    tags=["Admin"],
+)
 def admin_pending_orders(
     current_user: models.User = Depends(require_role("ADMIN")),
     db: Session = Depends(get_db),
 ):
     """Get all orders pending admin approval."""
-    orders = db.query(models.Order).filter(
-        models.Order.status == models.OrderStatus.PENDING_ADMIN_APPROVAL
-    ).order_by(models.Order.created_at.desc()).all()
+    orders = (
+        db.query(models.Order)
+        .filter(models.Order.status == models.OrderStatus.PENDING_ADMIN_APPROVAL)
+        .order_by(models.Order.created_at.desc())
+        .all()
+    )
     return orders
 
 
-@app.get("/api/admin/vendors/unverified", response_model=List[schemas.UserOut], tags=["Admin"])
+@app.get(
+    "/api/admin/vendors/unverified",
+    response_model=List[schemas.UserOut],
+    tags=["Admin"],
+)
 def admin_get_unverified_vendors(
     current_user: models.User = Depends(require_role("ADMIN")),
     db: Session = Depends(get_db),
 ):
-    vendors = db.query(models.User).filter(
-        models.User.role == "VENDOR",
-        models.User.is_verified_vendor == False
-    ).all()
+    vendors = (
+        db.query(models.User)
+        .filter(models.User.role == "VENDOR", models.User.is_verified_vendor == False)
+        .all()
+    )
     return vendors
 
 
@@ -1289,7 +1520,11 @@ def admin_verify_vendor(
     current_user: models.User = Depends(require_role("ADMIN")),
     db: Session = Depends(get_db),
 ):
-    vendor = db.query(models.User).filter(models.User.id == vendor_id, models.User.role == "VENDOR").first()
+    vendor = (
+        db.query(models.User)
+        .filter(models.User.id == vendor_id, models.User.role == "VENDOR")
+        .first()
+    )
     if not vendor:
         raise HTTPException(404, "Vendor not found")
     vendor.is_verified_vendor = True
@@ -1297,7 +1532,9 @@ def admin_verify_vendor(
     return {"status": "Success", "message": "Vendor verified"}
 
 
-@app.get("/api/admin/orders/{order_id}", response_model=schemas.AdminOrderOut, tags=["Admin"])
+@app.get(
+    "/api/admin/orders/{order_id}", response_model=schemas.AdminOrderOut, tags=["Admin"]
+)
 def admin_get_order(
     order_id: int,
     current_user: models.User = Depends(require_role("ADMIN")),
@@ -1307,13 +1544,15 @@ def admin_get_order(
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(404, "Order not found.")
-    
+
     # Load images
-    images = db.query(models.ProductImage).filter(
-        models.ProductImage.order_id == order_id
-    ).all()
+    images = (
+        db.query(models.ProductImage)
+        .filter(models.ProductImage.order_id == order_id)
+        .all()
+    )
     order.product_images = images
-    
+
     return order
 
 
@@ -1323,7 +1562,12 @@ def admin_get_all_products(
     db: Session = Depends(get_db),
 ):
     """Admin can see all products, including hidden/out of stock."""
-    prods = db.query(models.Product).options(joinedload(models.Product.vendor)).order_by(models.Product.created_at.desc()).all()
+    prods = (
+        db.query(models.Product)
+        .options(joinedload(models.Product.vendor))
+        .order_by(models.Product.created_at.desc())
+        .all()
+    )
     return [schemas.ProductOut.model_validate(p) for p in prods]
 
 
@@ -1340,7 +1584,7 @@ async def vendor_upload_product_image(
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(404, "Product not found.")
-    
+
     # Access control
     if current_user.role == "VENDOR" and product.vendor_id != current_user.id:
         raise HTTPException(403, "You can only upload images for your own products.")
@@ -1348,7 +1592,9 @@ async def vendor_upload_product_image(
     # Validate file type
     ext = (file.filename or "").rsplit(".", 1)[-1].lower()
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
-        raise HTTPException(400, f"Invalid file type. Allowed: {ALLOWED_IMAGE_EXTENSIONS}")
+        raise HTTPException(
+            400, f"Invalid file type. Allowed: {ALLOWED_IMAGE_EXTENSIONS}"
+        )
 
     filename = f"product_{product_id}_{uuid.uuid4().hex[:8]}.{ext}"
     path = os.path.join(UPLOAD_DIR, filename)
@@ -1365,44 +1611,58 @@ async def vendor_upload_product_image(
         uploaded_by_id=current_user.id,
     )
     db.add(product_image)
-    
+
     # Update product's main image if first upload
     if not product.image_url:
         product.image_url = image_url
-    
+
     db.commit()
     db.refresh(product_image)
-    
+
     return {
         "success": True,
         "image_id": product_image.id,
         "image_url": image_url,
         "side_name": side_name,
-        "message": "Image uploaded successfully"
+        "message": "Image uploaded successfully",
     }
 
 
-@app.get("/api/vendor/orders/{order_id}/images", response_model=List[schemas.ProductImageOut], tags=["Vendor"])
+@app.get(
+    "/api/vendor/orders/{order_id}/images",
+    response_model=List[schemas.ProductImageOut],
+    tags=["Vendor"],
+)
 def vendor_get_order_images(
     order_id: int,
     current_user: models.User = Depends(require_role("VENDOR")),
     db: Session = Depends(get_db),
 ):
     """Vendor view all images uploaded for an order."""
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.vendor_id == current_user.id,
-    ).first()
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.vendor_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found.")
-    
-    images = db.query(models.ProductImage).filter(
-        models.ProductImage.order_id == order_id
-    ).all()
+
+    images = (
+        db.query(models.ProductImage)
+        .filter(models.ProductImage.order_id == order_id)
+        .all()
+    )
     return images
 
 
-@app.post("/api/delivery/verify-location", response_model=schemas.LocationVerificationResponse, tags=["Delivery"])
+@app.post(
+    "/api/delivery/verify-location",
+    response_model=schemas.LocationVerificationResponse,
+    tags=["Delivery"],
+)
 def verify_delivery_location(
     order_id: int,
     current_lat: float,
@@ -1411,12 +1671,16 @@ def verify_delivery_location(
     db: Session = Depends(get_db),
 ):
     """Verify driver's current location against stated delivery address. Returns distance."""
-    from haversine import haversine, Unit
-    
-    order = db.query(models.Order).filter(
-        models.Order.id == order_id,
-        models.Order.driver_id == current_user.id,
-    ).first()
+    from haversine import Unit, haversine
+
+    order = (
+        db.query(models.Order)
+        .filter(
+            models.Order.id == order_id,
+            models.Order.driver_id == current_user.id,
+        )
+        .first()
+    )
     if not order:
         raise HTTPException(404, "Order not found or you're not the assigned driver.")
 
@@ -1424,7 +1688,7 @@ def verify_delivery_location(
     distance = haversine(
         (current_lat, current_lng),
         (order.delivery_lat, order.delivery_lng),
-        unit=Unit.METERS
+        unit=Unit.METERS,
     )
 
     radius_meters = 200.0  # 200m radius for successful delivery
@@ -1443,38 +1707,48 @@ def verify_delivery_location(
     }
 
 
-@app.get("/api/admin/dashboard", response_model=schemas.AdminDashboardStats, tags=["Admin"])
+@app.get(
+    "/api/admin/dashboard", response_model=schemas.AdminDashboardStats, tags=["Admin"]
+)
 def admin_dashboard(
     current_user: models.User = Depends(require_role("ADMIN")),
     db: Session = Depends(get_db),
 ):
     """Admin dashboard overview (pending orders, vendors, drivers stats)."""
-    pending_orders = db.query(models.Order).filter(
-        models.Order.status == models.OrderStatus.PENDING_ADMIN_APPROVAL
-    ).count()
-    
-    vendors = db.query(models.User).filter(
-        models.User.role == models.UserRole.VENDOR
-    ).count()
-    
-    drivers = db.query(models.User).filter(
-        models.User.role == models.UserRole.DRIVER
-    ).count()
-    
-    customers = db.query(models.User).filter(
-        models.User.role == models.UserRole.CUSTOMER
-    ).count()
-    
+    pending_orders = (
+        db.query(models.Order)
+        .filter(models.Order.status == models.OrderStatus.PENDING_ADMIN_APPROVAL)
+        .count()
+    )
+
+    vendors = (
+        db.query(models.User).filter(models.User.role == models.UserRole.VENDOR).count()
+    )
+
+    drivers = (
+        db.query(models.User).filter(models.User.role == models.UserRole.DRIVER).count()
+    )
+
+    customers = (
+        db.query(models.User)
+        .filter(models.User.role == models.UserRole.CUSTOMER)
+        .count()
+    )
+
     total_revenue = 0
-    delivered_orders = db.query(models.Order).filter(
-        models.Order.status == models.OrderStatus.DELIVERED
-    ).all()
+    delivered_orders = (
+        db.query(models.Order)
+        .filter(models.Order.status == models.OrderStatus.DELIVERED)
+        .all()
+    )
     for order in delivered_orders:
         total_revenue += order.total_amount
 
-    pending_images = db.query(models.ProductImage).filter(
-        models.ProductImage.is_verified == False
-    ).count()
+    pending_images = (
+        db.query(models.ProductImage)
+        .filter(models.ProductImage.is_verified == False)
+        .count()
+    )
 
     return {
         "total_pending_orders": pending_orders,
@@ -1488,6 +1762,7 @@ def admin_dashboard(
 
 # Health
 
+
 @app.get("/api/health", tags=["System"])
 def health():
     return {"status": "ok", "service": "SokoYetu API", "version": "1.0.0"}
@@ -1497,4 +1772,5 @@ def health():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

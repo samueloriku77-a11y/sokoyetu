@@ -1,9 +1,10 @@
 import os
 from urllib.parse import quote_plus
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file (located in parent directory)
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 # Database Configuration
 # Supports SQLite (default), PostgreSQL, and MySQL
@@ -21,7 +22,7 @@ elif DATABASE_TYPE == "postgresql":
     PG_HOST = os.getenv("POSTGRES_HOST", "localhost")
     PG_PORT = os.getenv("POSTGRES_PORT", "5432")
     PG_DB = os.getenv("POSTGRES_DB", "sokoyetu")
-    
+
     if PG_PASSWORD:
         DATABASE_URL = f"postgresql://{PG_USER}:{quote_plus(PG_PASSWORD)}@{PG_HOST}:{PG_PORT}/{PG_DB}"
     else:
@@ -34,11 +35,13 @@ elif DATABASE_TYPE == "mysql":
     MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
     MYSQL_PORT = os.getenv("MYSQL_PORT", "3306")
     MYSQL_DB = os.getenv("MYSQL_DB", "sokoyetu")
-    
+
     if MYSQL_PASSWORD:
         DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{quote_plus(MYSQL_PASSWORD)}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
     else:
-        DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
+        DATABASE_URL = (
+            f"mysql+pymysql://{MYSQL_USER}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DB}"
+        )
 
 # JWT Configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "sokoyetu-super-secret-key-change-in-production")
@@ -51,13 +54,17 @@ MPESA_CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY", "sandbox_key")
 MPESA_CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET", "sandbox_secret")
 MPESA_SHORTCODE = os.getenv("MPESA_SHORTCODE", "174379")
 MPESA_PASSKEY = os.getenv("MPESA_PASSKEY", "sandbox_passkey")
-MPESA_CALLBACK_URL = os.getenv("MPESA_CALLBACK_URL", "https://yourdomain.com/api/mpesa/callback")
+MPESA_CALLBACK_URL = os.getenv(
+    "MPESA_CALLBACK_URL", "https://yourdomain.com/api/mpesa/callback"
+)
 
 # IntaSend Configuration (Mobile money payments)
 INTASEND_API_URL = os.getenv("INTASEND_API_URL", "https://sandbox.intasend.co/v1")
 INTASEND_API_KEY = os.getenv("INTASEND_API_KEY", "")
 INTASEND_API_SECRET = os.getenv("INTASEND_API_SECRET", "")
-INTASEND_CALLBACK_URL = os.getenv("INTASEND_CALLBACK_URL", "https://yourdomain.com/api/wallet/callback")
+INTASEND_CALLBACK_URL = os.getenv(
+    "INTASEND_CALLBACK_URL", "https://yourdomain.com/api/wallet/callback"
+)
 
 # Notifications Configuration
 # Africa's Talking (SMS)

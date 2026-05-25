@@ -1,5 +1,6 @@
-from database import SessionLocal
 import models
+from database import SessionLocal
+
 
 def check():
     db = SessionLocal()
@@ -9,6 +10,7 @@ def check():
     for u in users:
         print(f"{u.id} | {u.email} | {u.role}")
     db.close()
+
 
 if __name__ == "__main__":
     check()
