@@ -1,5 +1,4 @@
 import os
-import time
 
 import imagehash
 from PIL import Image
