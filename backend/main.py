@@ -102,12 +102,12 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(400, "Email already registered.")
 
     if user.role == "DRIVER":
-        if not user.user_id:
-            raise HTTPException(400, "Drivers must provide a User ID.")
-        if db.query(models.User).filter(models.User.user_id == user.user_id).first():
+        if not getattr(user, "national_id", None):
+            raise HTTPException(400, "Drivers must provide a national ID for verification.")
+        if db.query(models.User).filter(models.User.national_id == user.national_id).first():
             raise HTTPException(
                 400,
-                "User ID already linked to an account. Gaming the system is prohibited.",
+                "National ID already linked to an account. Duplicate registrations are not allowed.",
             )
 
     new_user = models.User(
@@ -117,9 +117,9 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         hashed_password=get_password_hash(user.password),
         role=user.role,
         user_id=getattr(user, "user_id", None),
-        university=getattr(user, "university", None),
-        course_major=getattr(user, "course_major", None),
-        year_of_study=getattr(user, "year_of_study", None),
+        national_id=getattr(user, "national_id", None),
+        id_photo_url=getattr(user, "id_photo_url", None),
+        id_verified=False,
         profile_photo_url=getattr(user, "profile_photo_url", None),
         business_name=getattr(user, "business_name", None),
         location_address=getattr(user, "location_address", None),
@@ -1001,9 +1001,8 @@ def driver_stats(
         "deliveries_completed": deliveries,
         "estimated_earnings_khs": estimated_earnings,
         "user_id": current_user.user_id,
-        "university": current_user.university,
-        "course_major": current_user.course_major,
-        "year_of_study": current_user.year_of_study,
+        "national_id": current_user.national_id,
+        "id_verified": current_user.id_verified,
         "is_active": current_user.is_active_driver,
     }
 
@@ -1147,14 +1146,14 @@ def get_order_driver_profile(
     if not order.driver:
         return {"driver_profile": None, "message": "Driver not yet assigned"}
 
-    # Return only safe, public-facing driver info
+    # Return only safe, public-facing driver info (no national ID)
     return {
         "driver_profile": {
             "id": order.driver.id,
             "name": order.driver.name,
             "profile_photo_url": order.driver.profile_photo_url,
             "deliveries_completed": order.driver.deliveries_completed or 0,
-            "university": order.driver.university,  # Social context only
+            "id_verified": order.driver.id_verified,
         },
         "order_status": order.status,
     }

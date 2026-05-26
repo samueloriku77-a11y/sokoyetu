@@ -13,9 +13,9 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
     role: str = "CUSTOMER"  # CUSTOMER | VENDOR | DRIVER
     user_id: Optional[str] = None
-    university: Optional[str] = None
-    course_major: Optional[str] = None
-    year_of_study: Optional[str] = None
+    national_id: Optional[str] = None
+    id_photo_url: Optional[str] = None
+    id_verified: Optional[bool] = False
     profile_photo_url: Optional[str] = None
     # Vendor specific
     business_name: Optional[str] = None
@@ -33,9 +33,9 @@ class UserOut(BaseModel):
     wallet: Optional["WalletOut"] = None
     user_id: Optional[str] = None
     profile_photo_url: Optional[str] = None
-    university: Optional[str] = None
-    course_major: Optional[str] = None
-    year_of_study: Optional[str] = None
+    national_id: Optional[str] = None
+    id_photo_url: Optional[str] = None
+    id_verified: Optional[bool] = False
     deliveries_completed: int = 0
     vendors_supported: int = 0
     is_active_driver: bool = True
@@ -101,8 +101,9 @@ class WalletSummaryOut(BaseModel):
 
 
 class DriverProfileUpdate(BaseModel):
-    course_major: Optional[str] = None
-    year_of_study: Optional[str] = None
+    national_id: Optional[str] = None
+    id_photo_url: Optional[str] = None
+    id_verified: Optional[bool] = None
     profile_photo_url: Optional[str] = None
     is_active_driver: Optional[bool] = None
 
@@ -397,7 +398,7 @@ class DriverProfilePreview(BaseModel):
     name: str
     profile_photo_url: Optional[str] = None
     deliveries_completed: int = 0
-    university: Optional[str] = None  # Social context only
+    id_verified: Optional[bool] = False  # Verified identity status only
 
     class Config:
         from_attributes = True

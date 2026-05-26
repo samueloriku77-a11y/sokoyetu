@@ -361,10 +361,7 @@ export default function DriverDashboard() {
               <h3>{user?.name}</h3>
               <p className="text-muted">{user?.email}</p>
               {user?.user_id && (
-                <p className="badge">{user.user_id} • {user.university}</p>
-              )}
-              {user?.course_major && (
-                <p className="text-muted">{user.course_major} {user.year_of_study && `• ${user.year_of_study} Year`}</p>
+                <p className="badge">{user.user_id} • {user.id_verified ? 'Verified' : (user.national_id ? `ID:${String(user.national_id).slice(-4).padStart(String(user.national_id).length, '*')}` : '')}</p>
               )}
             </div>
           </div>

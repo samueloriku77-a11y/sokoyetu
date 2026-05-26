@@ -84,9 +84,10 @@ class User(Base):
     # Driver / external identifier (replaces student_id)
     user_id = Column(String, unique=True, index=True, nullable=True)
     profile_photo_url = Column(String, nullable=True)
-    university = Column(String, nullable=True)
-    course_major = Column(String, nullable=True)
-    year_of_study = Column(String, nullable=True)
+    # National ID and verification (replace university-specific fields)
+    national_id = Column(String, unique=True, index=True, nullable=True)
+    id_photo_url = Column(String, nullable=True)
+    id_verified = Column(Boolean, default=False)
     is_active_driver = Column(Boolean, default=True)
 
     # Community stats

@@ -21,7 +21,7 @@ export default function Register({ initialRole }) {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: '', email: '', password: '', phone: '',
-    user_id: '', university: '', course_major: '', year_of_study: '',
+    user_id: '', national_id: '', id_photo_url: '',
     business_name: '', location_address: '', location_lat: null, location_lng: null
   })
 
@@ -118,26 +118,19 @@ export default function Register({ initialRole }) {
                 <p style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '.5px' }}>Driver Details</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div className="form-group">
-                    <label>University ID (if applicable)</label>
-                    <input name="user_id" placeholder="e.g. UON/CS/2024/001" value={form.user_id} onChange={handle} required={role === 'DRIVER'} />
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>This is unique — one account per driver ID</span>
-                  </div>
-                  <div className="grid-2">
-                    <div className="form-group">
-                      <label>University</label>
-                      <input name="university" placeholder="UoN, JKUAT, KU…" value={form.university} onChange={handle} />
-                    </div>
-                    <div className="form-group">
-                      <label>Year of Study</label>
-                      <select name="year_of_study" value={form.year_of_study} onChange={handle}>
-                        <option value="">Select year</option>
-                        {['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgrad'].map(y => <option key={y}>{y}</option>)}
-                      </select>
-                    </div>
+                    <label>National ID Number</label>
+                    <input name="national_id" placeholder="e.g. 12345678" value={form.national_id} onChange={handle} required={role === 'DRIVER'} />
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Used for identity verification during registration</span>
                   </div>
                   <div className="form-group">
-                    <label>Course / Major</label>
-                    <input name="course_major" placeholder="Computer Science, Business…" value={form.course_major} onChange={handle} />
+                    <label>National ID Photo / Capture</label>
+                    <input name="id_photo_url" type="file" accept="image/*" onChange={(e) => {
+                      const file = e.target.files && e.target.files[0]
+                      if (!file) return
+                      // store a temporary object URL until upload is implemented
+                      setForm(f => ({ ...f, id_photo_url: URL.createObjectURL(file) }))
+                    }} />
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>You can capture or upload a clear photo of your national ID</span>
                   </div>
                 </div>
               </div>

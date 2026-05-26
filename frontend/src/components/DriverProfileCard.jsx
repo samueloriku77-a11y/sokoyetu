@@ -111,9 +111,11 @@ export default function DriverProfileCard({ orderId }) {
             </span>
             {' '}deliveries
           </div>
-          {driver.university && (
-            <div>📚 {driver.university}</div>
-          )}
+          {driver.id_verified ? (
+            <div>🛡️ Identity verified</div>
+          ) : driver.national_id ? (
+            <div>🆔 {String(driver.national_id).slice(-4).padStart(String(driver.national_id).length, '*')}</div>
+          ) : null}
         </div>
 
         {/* Safety Message */}
