@@ -1,0 +1,100 @@
+backend\api_posts.py:10:89: E501 line too long (95 > 88 characters)
+backend\api_posts.py:28:68: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+backend\api_posts.py:36:39: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+backend\auth.py:71:89: E501 line too long (97 > 88 characters)
+backend\check_schema.py:12:89: E501 line too long (123 > 88 characters)
+backend\config.py:27:89: E501 line too long (102 > 88 characters)
+backend\config.py:40:89: E501 line too long (120 > 88 characters)
+backend\init_db.py:11:1: F401 'sqlalchemy.orm.sessionmaker' imported but unused
+backend\init_db.py:16:1: E402 module level import not at top of file
+backend\init_db.py:25:1: E402 module level import not at top of file
+backend\init_db.py:66:11: F541 f-string is missing placeholders
+backend\init_db.py:79:15: F541 f-string is missing placeholders
+backend\init_db.py:80:15: F541 f-string is missing placeholders
+backend\init_db.py:84:15: F541 f-string is missing placeholders
+backend\main.py:36:1: E265 block comment should start with '# '
+backend\main.py:39:89: E501 line too long (109 > 88 characters)
+backend\main.py:51:1: F401 'services.security.verify_geofence' imported but unused
+backend\main.py:132:89: E501 line too long (101 > 88 characters)
+backend\main.py:428:89: E501 line too long (97 > 88 characters)
+backend\main.py:453:42: E711 comparison to None should be 'if cond is not None:'
+backend\main.py:454:41: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+backend\main.py:488:45: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+backend\main.py:519:89: E501 line too long (102 > 88 characters)
+backend\main.py:601:45: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+backend\main.py:703:89: E501 line too long (111 > 88 characters)
+backend\main.py:719:89: E501 line too long (102 > 88 characters)
+backend\main.py:764:5: F811 redefinition of unused 'verify_geofence' from line 51
+backend\main.py:911:36: E711 comparison to None should be 'if cond is None:'
+backend\main.py:932:36: E711 comparison to None should be 'if cond is None:'
+backend\main.py:956:36: E711 comparison to None should be 'if cond is None:'
+backend\main.py:980:13: E722 do not use bare 'except'
+backend\main.py:1039:89: E501 line too long (93 > 88 characters)
+backend\main.py:1436:17: E722 do not use bare 'except'
+backend\main.py:1612:78: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+backend\main.py:1774:89: E501 line too long (93 > 88 characters)
+backend\main.py:1850:49: E712 comparison to False should be 'if cond is False:' or 'if not cond:'
+backend\main.py:1868:1: F811 redefinition of unused 'health' from line 85
+backend\models.py:4:1: F401 'sqlalchemy.Enum' imported but unused
+backend\mysql_migrate.py:6:1: F401 'sys' imported but unused
+backend\mysql_migrate.py:14:5: F401 '.config.MYSQL_DB' imported but unused
+backend\services\intasend.py:2:1: F401 'config.INTASEND_API_KEY' imported but unused
+backend\services\intasend.py:35:5: F841 local variable 'status' is assigned to but never used
+backend\services\notifications.py:29:89: E501 line too long (124 > 88 characters)
+backend\services\notifications.py:30:89: E501 line too long (110 > 88 characters)
+backend\services\notifications.py:31:89: E501 line too long (136 > 88 characters)
+backend\services\notifications.py:40:89: E501 line too long (106 > 88 characters)
+backend\services\notifications.py:41:89: E501 line too long (97 > 88 characters)
+backend\services\notifications.py:42:89: E501 line too long (101 > 88 characters)
+backend\services\notifications.py:44:89: E501 line too long (159 > 88 characters)
+backend\services\notifications.py:47:89: E501 line too long (141 > 88 characters)
+backend\services\notifications.py:48:89: E501 line too long (96 > 88 characters)
+backend\services\notifications.py:49:89: E501 line too long (121 > 88 characters)
+backend\services\notifications.py:54:89: E501 line too long (115 > 88 characters)
+backend\services\notifications.py:55:89: E501 line too long (137 > 88 characters)
+backend\services\notifications.py:60:89: E501 line too long (124 > 88 characters)
+backend\services\notifications.py:61:89: E501 line too long (107 > 88 characters)
+backend\services\notifications.py:66:89: E501 line too long (134 > 88 characters)
+backend\services\notifications.py:69:89: E501 line too long (118 > 88 characters)
+backend\services\notifications.py:70:89: E501 line too long (119 > 88 characters)
+backend\services\notifications.py:71:89: E501 line too long (121 > 88 characters)
+backend\services\notifications.py:77:89: E501 line too long (103 > 88 characters)
+backend\services\notifications.py:78:89: E501 line too long (118 > 88 characters)
+backend\services\notifications.py:81:89: E501 line too long (90 > 88 characters)
+backend\services\notifications.py:82:89: E501 line too long (101 > 88 characters)
+backend\services\notifications.py:85:89: E501 line too long (139 > 88 characters)
+backend\services\notifications.py:86:89: E501 line too long (163 > 88 characters)
+backend\services\notifications.py:94:89: E501 line too long (138 > 88 characters)
+backend\services\notifications.py:97:89: E501 line too long (131 > 88 characters)
+backend\services\notifications.py:98:89: E501 line too long (130 > 88 characters)
+backend\services\notifications.py:101:89: E501 line too long (90 > 88 characters)
+backend\services\notifications.py:102:89: E501 line too long (108 > 88 characters)
+backend\services\notifications.py:109:89: E501 line too long (126 > 88 characters)
+backend\services\notifications.py:112:89: E501 line too long (102 > 88 characters)
+backend\services\notifications.py:113:89: E501 line too long (91 > 88 characters)
+backend\services\notifications.py:116:89: E501 line too long (107 > 88 characters)
+backend\services\notifications.py:117:89: E501 line too long (91 > 88 characters)
+backend\services\notifications.py:118:89: E501 line too long (105 > 88 characters)
+backend\services\notifications.py:127:89: E501 line too long (94 > 88 characters)
+backend\services\notifications.py:134:89: E501 line too long (136 > 88 characters)
+backend\services\notifications.py:180:89: E501 line too long (95 > 88 characters)
+backend\services\payment.py:3:1: F401 'json' imported but unused
+backend\services\payment.py:24:5: F401 'config.INTASEND_API_KEY' imported but unused
+backend\services\payment.py:24:5: F401 'config.MPESA_CALLBACK_URL' imported but unused
+backend\services\payment.py:47:89: E501 line too long (94 > 88 characters)
+backend\services\payment.py:70:1: F401 '.intasend.initiate_checkout as _checkout' imported but unused
+backend\services\payment.py:70:1: E402 module level import not at top of file
+backend\services\payment.py:71:1: F401 '.intasend.process_intasend_callback' imported but unused
+backend\services\payment.py:71:1: E402 module level import not at top of file
+backend\services\payment.py:119:1: F811 redefinition of unused 'initiate_intasend_payout' from line 108
+backend\services\payment.py:211:89: E501 line too long (95 > 88 characters)
+backend\services\payment.py:223:89: E501 line too long (99 > 88 characters)
+backend\services\security.py:86:89: E501 line too long (116 > 88 characters)
+backend\services\security.py:164:89: E501 line too long (102 > 88 characters)
+backend\services\security.py:182:89: E501 line too long (93 > 88 characters)
+backend\services\wallet_checkout.py:1:1: F401 'typing.List' imported but unused
+backend\services\wallet_checkout.py:29:45: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+backend\services\wallet_checkout.py:43:89: E501 line too long (115 > 88 characters)
+backend\tests\auth_smoke.py:13:1: E402 module level import not at top of file
+backend\tests\auth_smoke.py:14:1: E402 module level import not at top of file
+backend\tests\auth_smoke.py:15:1: E402 module level import not at top of file

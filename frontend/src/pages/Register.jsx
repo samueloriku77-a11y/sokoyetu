@@ -124,11 +124,19 @@ export default function Register({ initialRole }) {
                   </div>
                   <div className="form-group">
                     <label>National ID Photo / Capture</label>
-                    <input name="id_photo_url" type="file" accept="image/*" onChange={(e) => {
+                    <input name="id_photo_url" type="file" accept="image/*" onChange={async (e) => {
                       const file = e.target.files && e.target.files[0]
                       if (!file) return
-                      // store a temporary object URL until upload is implemented
-                      setForm(f => ({ ...f, id_photo_url: URL.createObjectURL(file) }))
+                      const fd = new FormData()
+                      fd.append('national_id', form.national_id || '')
+                      fd.append('file', file)
+                      try {
+                        const r = await api.post('/auth/upload-id', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+                        setForm(f => ({ ...f, id_photo_url: r.data.url }))
+                        toast.success('ID uploaded')
+                      } catch (err) {
+                        toast.error('ID upload failed')
+                      }
                     }} />
                     <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>You can capture or upload a clear photo of your national ID</span>
                   </div>

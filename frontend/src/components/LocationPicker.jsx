@@ -13,11 +13,11 @@ L.Icon.Default.mergeOptions({
 });
 
 const PREDEFINED_LOCATIONS = [
-  { id: 'uon-main', name: 'UoN Main Campus', lat: -1.2798, lng: 36.8166 },
-  { id: 'jkuat-juja', name: 'JKUAT Juja', lat: -1.0967, lng: 37.0144 },
-  { id: 'ku-main', name: 'KU Main Campus', lat: -1.1804, lng: 36.9317 },
-  { id: 'strathmore', name: 'Strathmore University', lat: -1.3094, lng: 36.8123 },
-  { id: 'usiu', name: 'USIU Africa', lat: -1.2185, lng: 36.8804 },
+  { id: 'city-center', name: 'City Center Market', lat: -1.2921, lng: 36.8219 },
+  { id: 'west-park', name: 'West Park Market', lat: -1.3000, lng: 36.8000 },
+  { id: 'ku-town', name: 'KU Town Market', lat: -1.1804, lng: 36.9317 },
+  { id: 'strathmore', name: 'Strathmore Market', lat: -1.3094, lng: 36.8123 },
+  { id: 'usiu', name: 'USIU Area', lat: -1.2185, lng: 36.8804 },
 ];
 
 function LocationMarker({ position, setPosition, setAddress }) {

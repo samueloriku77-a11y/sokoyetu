@@ -23,13 +23,16 @@ def _build_receipt_html(order: models.Order) -> str:
     driver_year = driver.year_of_study or ""
     vendor_name = vendor.name if vendor else "N/A"
 
-    items_html = "".join(f"""
+    items_html = "".join(
+        f"""
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">{item.product.name if item.product else 'Item'}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:center;">{item.quantity}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-align:right;">KES {item.unit_price * item.quantity:,.2f}</td>
         </tr>
-        """ for item in (order.items or []))
+        """
+        for item in (order.items or [])
+    )
 
     return f"""
     <!DOCTYPE html>

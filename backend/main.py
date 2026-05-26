@@ -4,9 +4,13 @@ import shutil
 import uuid
 from typing import Dict, List, Optional
 
-import database
-import models
-import schemas
+try:
+    from . import database, models, schemas
+except Exception:
+    import database
+    import models
+    import schemas
+
 from auth import (
     create_access_token,
     get_current_user,
@@ -18,6 +22,7 @@ from fastapi import (
     Depends,
     FastAPI,
     File,
+    Form,
     HTTPException,
     UploadFile,
     WebSocket,
@@ -35,9 +40,14 @@ from sqlalchemy.orm import Session, joinedload
     initiate_intasend_checkout,
     initiate_intasend_payout,
 )"""
-import api_capture
-import api_posts
-from config import UPLOAD_DIR
+try:
+    from . import api_capture, api_posts
+    from .config import UPLOAD_DIR
+except Exception:
+    import api_capture
+    import api_posts
+    from config import UPLOAD_DIR
+
 from services.security import (
     generate_handshake_keys,
     generate_order_ref,
@@ -47,6 +57,12 @@ from services.security import (
     verify_geofence,
 )
 from services.wallet_checkout import process_wallet_checkout
+from services.payment import (
+    initiate_intasend_checkout,
+    initiate_intasend_payout,
+    initiate_stk_push,
+    cancel_order_and_refund,
+)
 
 engine = database.engine
 Base = database.Base
@@ -103,8 +119,14 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     if user.role == "DRIVER":
         if not getattr(user, "national_id", None):
-            raise HTTPException(400, "Drivers must provide a national ID for verification.")
-        if db.query(models.User).filter(models.User.national_id == user.national_id).first():
+            raise HTTPException(
+                400, "Drivers must provide a national ID for verification."
+            )
+        if (
+            db.query(models.User)
+            .filter(models.User.national_id == user.national_id)
+            .first()
+        ):
             raise HTTPException(
                 400,
                 "National ID already linked to an account. Duplicate registrations are not allowed.",
@@ -370,6 +392,86 @@ async def upload_driver_photo(
     current_user.profile_photo_url = f"/uploads/{filename}"
     db.commit()
     return {"url": current_user.profile_photo_url}
+
+
+@app.post("/api/auth/upload-id", tags=["Auth"])
+@app.post("/auth/upload-id", tags=["Auth"])
+def upload_id(national_id: str = Form(...), file: UploadFile = File(...)):
+    """Accept national ID photo uploads and return a URL for the stored file."""
+    if not file.filename:
+        raise HTTPException(400, "No file uploaded")
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    # sanitize filename
+    basename = os.path.basename(file.filename).replace(" ", "_")
+    # prefix with national id and timestamp
+    fname = f"id_{national_id}_{int(datetime.datetime.utcnow().timestamp())}_{basename}"
+    fpath = os.path.join(UPLOAD_DIR, fname)
+    with open(fpath, "wb") as out:
+        out.write(file.file.read())
+
+    url = f"/uploads/{fname}"
+    return {"url": url}
+
+
+@app.post("/api/auth/upload-id/me", tags=["Auth"])
+async def upload_id_me(
+    national_id: Optional[str] = Form(None),
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Authenticated endpoint: upload ID photo and attach to current user."""
+    if not file.filename:
+        raise HTTPException(400, "No file uploaded")
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    basename = os.path.basename(file.filename).replace(" ", "_")
+    fname = f"id_user_{current_user.id}_{int(datetime.datetime.utcnow().timestamp())}_{basename}"
+    fpath = os.path.join(UPLOAD_DIR, fname)
+    with open(fpath, "wb") as out:
+        out.write(file.file.read())
+
+    url = f"/uploads/{fname}"
+    # Persist to user record
+    if national_id:
+        current_user.national_id = national_id
+    current_user.id_photo_url = url
+    current_user.id_verified = False
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return {"url": url, "user": schemas.UserOut.model_validate(current_user)}
+
+
+# Admin verification endpoints
+@app.get("/api/admin/id-verifications", tags=["Admin"])
+def list_pending_id_verifications(
+    db: Session = Depends(get_db),
+    _admin: models.User = Depends(require_role("ADMIN")),
+):
+    users = (
+        db.query(models.User)
+        .filter(models.User.id_photo_url != None)
+        .filter(models.User.id_verified == False)
+        .all()
+    )
+    return [schemas.UserOut.model_validate(u) for u in users]
+
+
+@app.post("/api/admin/verify-id/{user_id}", tags=["Admin"])
+def verify_user_id(
+    user_id: int,
+    verified: bool,
+    db: Session = Depends(get_db),
+    _admin: models.User = Depends(require_role("ADMIN")),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    user.id_verified = verified
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"user": schemas.UserOut.model_validate(user)}
 
 
 # Products
