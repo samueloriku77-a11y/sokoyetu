@@ -2,6 +2,7 @@ import os
 import sys
 
 from fastapi.testclient import TestClient
+import uuid
 
 # Force local sqlite for tests to avoid external DB connections
 os.environ.setdefault("DATABASE_TYPE", "sqlite")
@@ -32,14 +33,15 @@ def run_smoke():
     client = TestClient(main.app)
 
     # Test registration for a driver (requires national_id)
+    unique = uuid.uuid4().hex[:8]
     payload = {
-        "email": "testdriver@example.com",
+        "email": f"testdriver+{unique}@example.com",
         "password": "password123",
         "name": "Test Driver",
         "phone": "0712345678",
         "role": "DRIVER",
-        "national_id": "TEST-NID-0001",
-        "user_id": "DR-0001",
+        "national_id": f"TEST-NID-{unique}",
+        "user_id": f"DR-{unique}",
     }
 
     r = client.post("/api/auth/register", json=payload)
