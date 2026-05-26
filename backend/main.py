@@ -48,6 +48,12 @@ except Exception:
     import api_posts
     from config import UPLOAD_DIR
 
+from services.payment import (
+    cancel_order_and_refund,
+    initiate_intasend_checkout,
+    initiate_intasend_payout,
+    initiate_stk_push,
+)
 from services.security import (
     generate_handshake_keys,
     generate_order_ref,
@@ -57,12 +63,6 @@ from services.security import (
     verify_geofence,
 )
 from services.wallet_checkout import process_wallet_checkout
-from services.payment import (
-    initiate_intasend_checkout,
-    initiate_intasend_payout,
-    initiate_stk_push,
-    cancel_order_and_refund,
-)
 
 engine = database.engine
 Base = database.Base

@@ -1,4 +1,0 @@
-[flake8]
-exclude = backend/venv, frontend/node_modules, .git, .venv
-max-line-length = 88
-extend-ignore = E203, W503
